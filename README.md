@@ -2,7 +2,7 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Active-brightgreen)](https://github.com/yourusername/fake-bobby-david-site)
 
-A satirical, educational website demonstrating how to identify phishing and fake healthcare sites. This project serves as both a parody and an awareness tool to help people recognize the warning signs of illegitimate healthcare information online.
+A satirical, educational website demonstrating how to identify phishing. This project serves as both a parody and an awareness tool to help people recognize the warning signs of phishing.
 
 ![Fake Bobby & Fake David Preview](preview.png)
 
