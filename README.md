@@ -88,7 +88,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-Created by [Your Name] as a demonstration of modern web design techniques and educational tool.
+Created by @HogFillet as a demonstration of modern web design techniques and educational tool.
 
 ---
 
