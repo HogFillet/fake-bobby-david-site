@@ -62,7 +62,7 @@ The site explicitly labels itself as parody throughout and includes warnings abo
 
 ## 📋 Educational Purpose
 
-This site demonstrates several common signs of fraudulent healthcare websites:
+This site also demonstrates several common signs of fraudulent healthcare websites:
 
 1. Unqualified "experts" with dubious credentials
 2. Exaggerated claims and statistics
@@ -80,7 +80,7 @@ Unlike real scam sites, this parody clearly identifies itself as fake to teach v
 
 ## ⚠️ Disclaimer
 
-This website is a parody created for educational purposes only. It is not affiliated with any actual healthcare organization or provider. The characters "Fake Bobby" and "Fake David" are fictional, and one is literally a statue. Any resemblance to real persons or organizations is coincidental.
+This website is a parody created for educational purposes only. It is not affiliated with any actual healthcare organization or provider. The characters "Fake Bobby" and "Fake David" are fictional, and one is literally a statue. Any resemblance to real cartoons, persons or organizations is coincidental.
 
 ## 📄 License
 
