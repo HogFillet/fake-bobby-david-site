@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Bobby & Fake David</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0050ff;
+            --primary-light: #4f84ff;
+            --secondary: #06b6d4;
+            --accent: #ff3e82;
+            --dark: #0a0b10;
+            --light: #ffffff;
+            --gray: #8892b0;
+            --gray-light: #e2e8f0;
+            --warning: #ffc34d;
+            --success: #00c875;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y proximity;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            background-color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .section {
+            height: 100vh;
+            width: 100%;
+            padding: 0 5%;
+            display: flex;
+            align-items: center;
+            position: relative;
+            scroll-snap-align: start;
+            overflow: hidden;
+        }
+        
+        .section-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .warning-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--warning);
+            color: var(--dark);
+            padding: 10px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 14px;
+            z-index: 1000;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .warning-banner.hide {
+            transform: translateY(-100%);
+        }
+        
+        .nav {
+            position: fixed;
+            top: 40px;
+            right: 30px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--gray-light);
+            border-radius: 50%;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .nav-dot.active {
+            background-color: var(--primary);
+            transform: scale(1.5);
+        }
+        
+        .nav-dot:hover {
+            transform: scale(1.3);
+        }
+        
+        .logo {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--primary);
+            z-index: 999;
+            mix-blend-mode: difference;
+        }
+        
+        /* HERO SECTION */
+        .hero {
+            background-color: var(--light);
+        }
+        
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 7rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s forwards 0.3s;
+        }
+        
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            max-width: 800px;
+            margin-bottom: 40px;
+            color: var(--gray);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s forwards 0.6s;
+        }
+        
+        .disclaimer {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--gray);
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s forwards 0.9s;
+        }
+        
+        /* CHARACTERS SECTION */
+        .characters {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            height: 100%;
+        }
+        
+        .character-card {
+            overflow: hidden;
+            border-radius: 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .character-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .character-img-container {
+            height: 70%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .character-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1s ease;
+        }
+        
+        #fake-david-img {
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        #fake-bobby-img {
+            animation: bobbyBounce 6s ease-in-out infinite;
+        }
+        
+        .character-card:hover .character-img {
+            transform: scale(1.05);
+        }
+        
+        .character-info {
+            padding: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .character-name {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .character-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+        
+        /* STATS SECTION */
+        .stats {
+            background-color: var(--dark);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            color: var(--gray-light);
+        }
+        
+        /* STORE SECTION */
+        .store {
+            background-color: var(--light);
+        }
+        
+        .store-title {
+            font-size: 3rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: var(--dark);
+        }
+        
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .product-img-container {
+            height: 280px;
+            overflow: hidden;
+        }
+        
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        
+        .product-card:hover .product-img {
+            transform: scale(1.08);
+        }
+        
+        .product-info {
+            padding: 25px;
+        }
+        
+        .product-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .product-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .buy-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .buy-btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+        }
+        
+        /* CONTACT SECTION */
+        .contact {
+            background-color: var(--gray-light);
+        }
+        
+        .contact-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .contact-title {
+            font-size: 3rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: var(--dark);
+        }
+        
+        .contact-form {
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 80, 255, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 80, 255, 0.1);
+        }
+        
+        .submit-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+        }
+        
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        @keyframes bobbyBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-15px) rotate(5deg);
+            }
+            60% {
+                transform: translateY(-15px) rotate(-5deg);
+            }
+        }
+        
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .reveal-delay-1 {
+            transition-delay: 0.2s;
+        }
+        
+        .reveal-delay-2 {
+            transition-delay: 0.4s;
+        }
+        
+        .reveal-delay-3 {
+            transition-delay: 0.6s;
+        }
+        
+        /* BACKGROUND ELEMENTS */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .bg-circle-1 {
+            width: 60vw;
+            height: 60vw;
+            background: linear-gradient(135deg, rgba(79, 132, 255, 0.1), rgba(79, 132, 255, 0.05));
+            top: -30vw;
+            right: -20vw;
+        }
+        
+        .bg-circle-2 {
+            width: 40vw;
+            height: 40vw;
+            background: linear-gradient(135deg, rgba(255, 62, 130, 0.1), rgba(255, 62, 130, 0.05));
+            bottom: -20vw;
+            left: -10vw;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .character-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .character-card {
+                height: auto;
+            }
+            
+            .character-img-container {
+                height: 300px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .section {
+                padding: 80px 5%;
+                height: auto;
+                min-height: 100vh;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .store-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .logo {
+                left: 20px;
+                top: 20px;
+            }
+            
+            .hero h1 {
+                font-size: clamp(2.5rem, 8vw, 5rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="warning-banner" id="warningBanner">
+        ⚠️ THIS IS A PARODY SITE ⚠️ Don't fall for real health scams or phishing! Always verify healthcare providers' credentials.
+    </div>
+    
+    <div class="logo">Fake Bobby & Fake David</div>
+    
+    <nav class="nav">
+        <div class="nav-dot active" data-section="hero"></div>
+        <div class="nav-dot" data-section="characters"></div>
+        <div class="nav-dot" data-section="stats"></div>
+        <div class="nav-dot" data-section="store"></div>
+        <div class="nav-dot" data-section="contact"></div>
+    </nav>
+    
+    <!-- HERO SECTION -->
+    <section class="section hero" id="hero">
+        <div class="section-content hero-content">
+            <h1>Meet Your "Healthcare Experts"</h1>
+            <p>Where statues and cartoons give questionable health advice!</p>
+            <div class="disclaimer">
+                <p><strong>Thank you for visiting our parody site!</strong></p>
+                <p>Remember: This is satire. Don't fall for phishing or fake health advice online.</p>
+                <p style="color: var(--warning); font-weight: 500; margin-top: 10px;">⚠️ BEWARE: Real phishing sites don't announce they're fake. Always verify healthcare information with legitimate sources!</p>
+            </div>
+        </div>
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+    </section>
+    
+    <!-- CHARACTERS SECTION -->
+    <section class="section characters" id="characters">
+        <div class="section-content">
+            <div class="character-grid">
+                <div class="character-card reveal">
+                    <div class="character-img-container">
+                        <img src="images/fake-david.jpg" alt="Fake David Statue" class="character-img" id="fake-david-img">
+                    </div>
+                    <div class="character-info">
+                        <div>
+                            <h2 class="character-name">Fake David</h2>
+                            <p class="character-description">Our marble statue expert on ancient medical practices. He's been practicing medicine since the Renaissance, which might explain his outdated advice.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="character-card reveal reveal-delay-1">
+                    <div class="character-img-container">
+                        <img src="images/fake-bobby.jpg" alt="Fake Bobby Cartoon" class="character-img" id="fake-bobby-img">
+                    </div>
+                    <div class="character-info">
+                        <div>
+                            <h2 class="character-name">Fake Bobby</h2>
+                            <p class="character-description">Not a real doctor, but plays one on our website. His medical license is about as authentic as his drawn-on stethoscope.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- STATS SECTION -->
+    <section class="section stats" id="stats">
+        <div class="section-content">
+            <div class="stats-grid">
+                <div class="stat-card reveal">
+                    <div class="stat-number" id="visitor-count">0</div>
+                    <div class="stat-label">Actual Visitors To This Page</div>
+                </div>
+                
+                <div class="stat-card reveal reveal-delay-1">
+                    <div class="stat-number">514</div>
+                    <div class="stat-label">Years Since Fake David Went to Medical School</div>
+                </div>
+                
+                <div class="stat-card reveal reveal-delay-2">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Actual Medical Qualifications</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- STORE SECTION -->
+    <section class="section store" id="store">
+        <div class="section-content">
+            <h2 class="store-title reveal">Fake Bobby & Fake David Merch</h2>
+            <div class="store-grid">
+                <div class="product-card reveal">
+                    <div class="product-img-container">
+                        <img src="/api/placeholder/400/320" alt="Fake Bobby T-Shirt" class="product-img">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fake Bobby T-Shirt</h3>
+                        <div class="product-price">$24.99</div>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+                
+                <div class="product-card reveal reveal-delay-1">
+                    <div class="product-img-container">
+                        <img src="/api/placeholder/400/320" alt="Fake David Hoodie" class="product-img">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fake David Marble-Print Hoodie</h3>
+                        <div class="product-price">$49.99</div>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+                
+                <div class="product-card reveal reveal-delay-2">
+                    <div class="product-img-container">
+                        <img src="/api/placeholder/400/320" alt="Fake Bobby Coffee Mug" class="product-img">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fake Bobby "Not A Doctor" Mug</h3>
+                        <div class="product-price">$18.99</div>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+                
+                <div class="product-card reveal reveal-delay-3">
+                    <div class="product-img-container">
+                        <img src="/api/placeholder/400/320" alt="Fake David Statue Miniature" class="product-img">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Mini Fake David Statue</h3>
+                        <div class="product-price">$34.99</div>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CONTACT SECTION -->
+    <section class="section contact" id="contact">
+        <div class="section-content contact-content">
+            <h2 class="contact-title reveal">Get In Touch</h2>
+            <form class="contact-form reveal reveal-delay-1">
+                <div class="form-group">
+                    <label for="name" class="form-label">Your Name</label>
+                    <input type="text" id="name" class="form-input" placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Your Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message" class="form-label">Your Message</label>
+                    <textarea id="message" class="form-textarea" placeholder="What would you like to say?"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+    
+    <script>
+        // Scroll animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Visitor counter
+            const visitorCounter = document.getElementById('visitor-count');
+            let count = localStorage.getItem('visitorCount');
+            
+            if (!count) {
+                count = 1;
+            } else {
+                count = parseInt(count) + 1;
+            }
+            
+            localStorage.setItem('visitorCount', count);
+            
+            // Animate counter
+            const animateCount = (el, target) => {
+                let count = 0;
+                const duration = 2000; // 2 seconds
+                const step = target / (duration / 16); // 60fps
+                
+                const updateCount = () => {
+                    count += step;
+                    if (count < target) {
+                        el.textContent = Math.floor(count).toLocaleString();
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        el.textContent = Math.floor(target).toLocaleString();
+                    }
+                };
+                
+                updateCount();
+            };
+            
+            // Reveal elements on scroll
+            const reveal = () => {
+                const reveals = document.querySelectorAll('.reveal');
+                
+                reveals.forEach(element => {
+                    const windowHeight = window.innerHeight;
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < windowHeight - elementVisible) {
+                        element.classList.add('active');
+                    }
+                });
+            };
+            
+            // Navigation dots
+            const updateNav = () => {
+                const sections = document.querySelectorAll('.section');
+                const navDots = document.querySelectorAll('.nav-dot');
+                
+                sections.forEach((section, index) => {
+                    const top = section.getBoundingClientRect().top;
+                    
+                    if (top < window.innerHeight / 2 && top > -window.innerHeight / 2) {
+                        navDots.forEach(dot => dot.classList.remove('active'));
+                        navDots[index].classList.add('active');
+                    }
+                });
+            };
+            
+            // Warning banner
+            const warningBanner = document.getElementById('warningBanner');
+            let lastScrollTop = 0;
+            
+            const handleScroll = () => {
+                reveal();
+                updateNav();
+                
+                // Handle banner hide/show on scroll
+                const st = window.pageYOffset || document.documentElement.scrollTop;
+                if (st > lastScrollTop && st > 100) {
+                    // Scrolling down
+                    warningBanner.classList.add('hide');
+                } else if (st < lastScrollTop || st < 50) {
+                    // Scrolling up or at top
+                    warningBanner.classList.remove('hide');
+                }
+                lastScrollTop = st <= 0 ? 0 : st;
+            };
+            
+            // Nav dot click
+            document.querySelectorAll('.nav-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const section = dot.getAttribute('data-section');
+                    document.getElementById(section).scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+            
+            // Form submission handling
+            document.querySelector('.contact-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('This is a parody site! Your message would not be sent to real healthcare professionals.');
+                this.reset();
+            });
+            
+            // Initialize animations
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Initial check
+            
+            // Animate counter when stats section is in view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCount(visitorCounter, count);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            observer.observe(document.querySelector('.stats'));
+        });
+    </script>
+</body>
+</html>
