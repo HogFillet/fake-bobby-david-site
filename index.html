@@ -263,7 +263,7 @@
         
         header {
             position: fixed;
-            top: 40px; /* Space for the warning banner */
+            top: 40px;
             left: 0;
             width: 100%;
             padding: 15px 30px;
@@ -340,6 +340,79 @@
         
         .nav-links a:hover::after {
             width: 100%;
+        }
+
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--dark);
+            margin: 3px 0;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 40px;
+            right: -100%;
+            width: 280px;
+            height: calc(100vh - 40px);
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 998;
+            padding-top: 80px;
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-menu ul li {
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .mobile-menu ul li a {
+            display: block;
+            padding: 20px 30px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu ul li a:hover {
+            background-color: var(--primary);
+            color: white;
+            padding-left: 40px;
         }
         
         /* HERO SECTION */
@@ -797,7 +870,7 @@
             }
             
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
                 gap: 20px;
             }
             
@@ -813,17 +886,26 @@
                 grid-template-columns: 1fr;
             }
             
-            .nav {
+            .nav-links {
                 display: none;
             }
-            
-            .logo {
-                left: 20px;
-                top: 20px;
+
+            .hamburger {
+                display: flex;
             }
             
             .hero h1 {
                 font-size: clamp(2.5rem, 8vw, 5rem);
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .speech-bubble-1,
+            .speech-bubble-2,
+            .speech-bubble-3 {
+                display: none;
             }
         }
     </style>
@@ -841,14 +923,30 @@
             <nav>
                 <ul class="nav-links">
                     <li><a href="#home">Home</a></li>
-                    <li><a href="#about">Meet The Fakes</a></li>
+                    <li><a href="#characters">Meet The Fakes</a></li>
                     <li><a href="#stats">Stats</a></li>
                     <li><a href="#store">Store</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="#home" class="mobile-link">Home</a></li>
+            <li><a href="#characters" class="mobile-link">Meet The Fakes</a></li>
+            <li><a href="#stats" class="mobile-link">Stats</a></li>
+            <li><a href="#store" class="mobile-link">Store</a></li>
+            <li><a href="#contact" class="mobile-link">Contact</a></li>
+        </ul>
+    </div>
     
     <!-- HERO SECTION -->
     <div class="hero" id="home">
@@ -1035,8 +1133,33 @@
         console.log('- Clickjacking prevention (X-Frame-Options: DENY)');
         console.log('- No-referrer policy for external links');
         
-        // Scroll animations
+        // Hamburger menu functionality
         document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                mobileMenu.classList.toggle('active');
+            });
+
+            // Close menu when clicking on a link
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    hamburger.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                });
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!hamburger.contains(event.target) && !mobileMenu.contains(event.target)) {
+                    hamburger.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                }
+            });
+
             // Visitor counter
             const visitorCounter = document.getElementById('visitor-count');
             let count = localStorage.getItem('visitorCount');
@@ -1052,8 +1175,8 @@
             // Animate counter
             const animateCount = (el, target) => {
                 let count = 0;
-                const duration = 2000; // 2 seconds
-                const step = target / (duration / 16); // 60fps
+                const duration = 2000;
+                const step = target / (duration / 16);
                 
                 const updateCount = () => {
                     count += step;
@@ -1083,48 +1206,22 @@
                 });
             };
             
-            // Navigation dots
-            const updateNav = () => {
-                const sections = document.querySelectorAll('.section');
-                const navDots = document.querySelectorAll('.nav-dot');
-                
-                sections.forEach((section, index) => {
-                    const top = section.getBoundingClientRect().top;
-                    
-                    if (top < window.innerHeight / 2 && top > -window.innerHeight / 2) {
-                        navDots.forEach(dot => dot.classList.remove('active'));
-                        navDots[index].classList.add('active');
-                    }
-                });
-            };
-            
             // Warning banner
             const warningBanner = document.getElementById('warningBanner');
             let lastScrollTop = 0;
             
             const handleScroll = () => {
                 reveal();
-                updateNav();
                 
                 // Handle banner hide/show on scroll
                 const st = window.pageYOffset || document.documentElement.scrollTop;
                 if (st > lastScrollTop && st > 100) {
-                    // Scrolling down
                     warningBanner.classList.add('hide');
                 } else if (st < lastScrollTop || st < 50) {
-                    // Scrolling up or at top
                     warningBanner.classList.remove('hide');
                 }
                 lastScrollTop = st <= 0 ? 0 : st;
             };
-            
-            // Nav dot click
-            document.querySelectorAll('.nav-dot').forEach(dot => {
-                dot.addEventListener('click', () => {
-                    const section = dot.getAttribute('data-section');
-                    document.getElementById(section).scrollIntoView({ behavior: 'smooth' });
-                });
-            });
             
             // Form submission handling
             document.querySelector('.contact-form').addEventListener('submit', function(e) {
@@ -1142,7 +1239,7 @@
             
             // Initialize animations
             window.addEventListener('scroll', handleScroll);
-            handleScroll(); // Initial check
+            handleScroll();
             
             // Animate counter when stats section is in view
             const observer = new IntersectionObserver((entries) => {
