@@ -1110,23 +1110,23 @@
     <section class="section contact" id="contact">
         <div class="section-content contact-content">
             <h2 class="contact-title reveal">Get In Touch</h2>
-            <form class="contact-form reveal reveal-delay-1">
+            <form class="contact-form reveal reveal-delay-1" id="contactForm">
                 <div class="form-group">
-                    <label for="name" class="form-label">Your Name</label>
-                    <input type="text" id="name" class="form-input" placeholder="Enter your name">
+                    <label for="contact-name" class="form-label">Your Name</label>
+                    <input type="text" id="contact-name" name="name" class="form-input" placeholder="Enter your name" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="email" class="form-label">Your Email</label>
-                    <input type="email" id="email" class="form-input" placeholder="Enter your email">
+                    <label for="contact-email" class="form-label">Your Email</label>
+                    <input type="email" id="contact-email" name="email" class="form-input" placeholder="Enter your email" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="message" class="form-label">Your Message</label>
-                    <textarea id="message" class="form-textarea" placeholder="What would you like to say?"></textarea>
+                    <label for="contact-message" class="form-label">Your Message</label>
+                    <textarea id="contact-message" name="message" class="form-textarea" placeholder="What would you like to say?" required></textarea>
                 </div>
-                
-                <button type="submit" class="submit-btn">Send Message (Doesn't Work)</button>
+
+                <button type="submit" class="submit-btn">Send Message</button>
             </form>
         </div>
     </section>
@@ -1223,10 +1223,38 @@
             };
             
             // Form submission handling
-            document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                alert('This is a parody site! This form doesn\'t actually work. In real phishing sites, forms like this might steal your information. Always verify the legitimacy of websites before submitting personal data!');
-                this.reset();
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('.submit-btn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Sending...';
+                submitBtn.disabled = true;
+
+                fetch('https://formspree.io/f/mbdokowg', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        submitBtn.textContent = 'Message Sent!';
+                        this.reset();
+                        setTimeout(() => {
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                        }, 3000);
+                    } else {
+                        throw new Error('Form submission failed');
+                    }
+                })
+                .catch(error => {
+                    submitBtn.textContent = 'Error - Try Again';
+                    submitBtn.disabled = false;
+                    setTimeout(() => {
+                        submitBtn.textContent = originalText;
+                    }, 3000);
+                });
             });
             
             // Buy button handling
