@@ -12,6 +12,7 @@ This single-page website uses modern design techniques and scroll animations to 
 
 - **Fake David**: A marble statue posing as a medical expert
 - **Fake Bobby**: A cartoon character with "FAKE" stamped on his face
+- **Fake Tommy**: A cartoon character with "FAKE" stamped on his face
 
 The site explicitly labels itself as parody throughout and includes warnings about real phishing sites.
 
@@ -22,7 +23,7 @@ The site explicitly labels itself as parody throughout and includes warnings abo
 - **Interactive navigation** with dot indicators
 - **Dynamic visitor counter** using localStorage
 - **Animated character elements** that move as you scroll
-- **Fake merchandise store** for demonstration purposes
+- **Fake merchandise store** submit an order for stickers
 - **Clear anti-phishing warnings and educational content**
 
 ## 💻 Technical Implementation
