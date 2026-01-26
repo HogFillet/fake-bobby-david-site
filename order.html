@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FakeBobby Sticker Order Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --warning-yellow: #FFD23F;
+            --danger-red: #FF3B3B;
+            --terminal-green: #39FF14;
+            --dark-bg: #0D0D0D;
+            --card-bg: #1A1A1A;
+            --border-color: #333;
+            --text-primary: #FFFFFF;
+            --text-secondary: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Animated grid background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .warning-tape {
+            background: repeating-linear-gradient(
+                45deg,
+                var(--warning-yellow),
+                var(--warning-yellow) 10px,
+                var(--dark-bg) 10px,
+                var(--dark-bg) 20px
+            );
+            height: 20px;
+            margin-bottom: 30px;
+            animation: tapeScroll 10s linear infinite;
+        }
+
+        @keyframes tapeScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+
+        .logo {
+            font-family: 'Russo One', sans-serif;
+            font-size: 3.5rem;
+            color: var(--warning-yellow);
+            text-shadow: 
+                0 0 10px var(--warning-yellow),
+                0 0 20px var(--warning-yellow),
+                4px 4px 0 var(--danger-red);
+            letter-spacing: 2px;
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-2px, 1px); }
+            94% { transform: translate(2px, -1px); }
+            96% { transform: translate(-1px, 2px); }
+            98% { transform: translate(1px, -2px); }
+        }
+
+        .subtitle {
+            color: var(--terminal-green);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .subtitle::before {
+            content: '> ';
+        }
+
+        .subtitle::after {
+            content: '_';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            padding: 30px;
+            position: relative;
+        }
+
+        .form-card::before {
+            content: 'ORDER_FORM.exe';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--dark-bg);
+            padding: 0 10px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--terminal-green);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label::before {
+            content: '// ';
+            color: var(--text-secondary);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--terminal-green);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2339FF14' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+        }
+
+        select option {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 10px 15px;
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--warning-yellow);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--terminal-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + .checkbox-custom {
+            background: var(--terminal-green);
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + .checkbox-custom::after {
+            content: '✓';
+            color: var(--dark-bg);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .checkbox-label {
+            font-size: 0.9rem;
+        }
+
+        .sticker-emoji {
+            font-size: 1.2rem;
+            margin-right: 5px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .sticker-emoji img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--warning-yellow);
+            color: var(--dark-bg);
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover {
+            background: var(--terminal-green);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .footer a {
+            color: var(--danger-red);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Success Message (hidden by default) */
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .success-message h2 {
+            font-family: 'Russo One', sans-serif;
+            color: var(--terminal-green);
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="warning-tape"></div>
+            <h1 class="logo">FAKEBOBBY</h1>
+            <p class="subtitle">Sticker Requisition Form</p>
+        </header>
+
+        <div class="form-card">
+            <form id="orderForm">
+                <div class="form-group">
+                    <label for="name">Operative Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Secure Email</label>
+                    <input type="email" id="email" name="email" placeholder="your.email@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="company">Company</label>
+                    <input type="text" id="company" name="company" placeholder="e.g., Acme Corp, Initech">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Drop Location (Shipping Address)</label>
+                    <textarea id="address" name="address" placeholder="Street Address&#10;City, State ZIP" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Your Stickers</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="stickers" value="fakebobby">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label"><span class="sticker-emoji"><img src="/images/fake-bobby.png" alt="Fake Bobby"></span> Fake Bobby</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="stickers" value="fakedavid">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label"><span class="sticker-emoji"><img src="/images/fake-david.png" alt="Fake David"></span> Fake David</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="stickers" value="faketommy">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label"><span class="sticker-emoji"><img src="/images/fake-tommy.png" alt="Fake Tommy"></span> Fake Tommy</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="stickers" value="htp-world">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label"><span class="sticker-emoji"><img src="/images/htp-world.png" alt="Hack the Planet World"></span> Hack the Planet World</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="stickers" value="htp-graffiti">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label"><span class="sticker-emoji"><img src="/images/htp-graf.png" alt="Hack the Planet Graffiti"></span> Hack the Planet Graffiti</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <select id="quantity" name="quantity" required>
+                        <option value="">Select quantity...</option>
+                        <option value="1">1 - Just testing the waters</option>
+                        <option value="3">3 - One for me, two for friends</option>
+                        <option value="5">5 - Spreading the word</option>
+                        <option value="10">10 - Security champion mode</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="source">How Did You Find FakeBobby?</label>
+                    <select id="source" name="source">
+                        <option value="">Select source...</option>
+                        <option value="phishing">I got phished (and learned!)</option>
+                        <option value="coworker">A coworker told me</option>
+                        <option value="slack">Slack / Teams</option>
+                        <option value="training">Security training session</option>
+                        <option value="other">Other / Classified</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Additional Intel (Optional)</label>
+                    <input type="text" id="notes" name="notes" placeholder="Special requests, questions, etc.">
+                </div>
+
+                <button type="submit" class="submit-btn">SUBMIT ORDER</button>
+            </form>
+
+            <div class="success-message" id="successMessage">
+                <div class="success-icon">🎉</div>
+                <h2>ORDER RECEIVED!</h2>
+                <p>Your stickers are being prepared for deployment.</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>🔒 Your data is secure. We only use it to send you awesome stickers.</p>
+            <p style="margin-top: 8px;">Part of the <a href="#">Security Awareness Program</a></p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // Get all checked stickers as a comma-separated string
+            const stickers = [];
+            document.querySelectorAll('input[name="stickers"]:checked').forEach(cb => {
+                stickers.push(cb.value);
+            });
+            formData.set('stickers', stickers.join(', '));
+            
+            fetch('https://formspree.io/f/mgokavqa', {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    this.style.display = 'none';
+                    document.getElementById('successMessage').classList.add('show');
+                } else {
+                    alert('Oops! Something went wrong.');
+                }
+            })
+            .catch(error => {
+                alert('Oops! Something went wrong.');
+            });
+        });
+    </script>
+</body>
+</html>
