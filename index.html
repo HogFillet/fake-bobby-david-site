@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app https://ipapi.co;">
     <meta name="referrer" content="no-referrer">
     <title>Fake Bobby, Fake David & Fake Tommy</title>
     <link rel="icon" type="image/png" href="images/fake-bobby-logo.png">
@@ -1331,6 +1331,7 @@
 
             document.addEventListener('click', function() {
                 if (window._splashCarouselDragged) { window._splashCarouselDragged = false; return; }
+                if (window._trackSplash) window._trackSplash('click_through');
                 dismissSplash();
             });
             document.addEventListener('keydown', function(e) {
@@ -1394,7 +1395,10 @@
             window.addEventListener('mouseup', function() {
                 if (!isDragging) return;
                 isDragging = false;
-                if (dragMoved) window._splashCarouselDragged = true;
+                if (dragMoved) {
+                    window._splashCarouselDragged = true;
+                    if (window._trackSplash) window._trackSplash('carousel_drag');
+                }
                 setTimeout(startSpin, 700);
             });
 
@@ -1549,9 +1553,13 @@
             });
             
             // Buy button handling
-            document.querySelectorAll('.buy-btn').forEach(btn => {
+            const productKeys = ['bobby_tshirt', 'david_hoodie', 'tommy_mug', 'stickers'];
+            document.querySelectorAll('.buy-btn').forEach((btn, i) => {
                 btn.addEventListener('click', function() {
-                    alert('This is a parody store! Nothing is actually for sale. Real phishing sites might try to steal your payment information. Always verify the legitimacy of online stores!');
+                    if (window._trackStore) window._trackStore(productKeys[i] || 'unknown');
+                    if (!btn.getAttribute('onclick')) {
+                        alert('This is a parody store! Nothing is actually for sale. Real phishing sites might try to steal your payment information. Always verify the legitimacy of online stores!');
+                    }
                 });
             });
             
@@ -1591,15 +1599,50 @@
         });
 
         const db = getDatabase(app);
+        const inc = path => runTransaction(ref(db, path), n => (n || 0) + 1).catch(() => {});
 
-        runTransaction(ref(db, 'visitors/count'), (n) => (n || 0) + 1)
-            .then(result => {
-                if (window._onVisitorCount) window._onVisitorCount(result.snapshot.val());
+        // Total visitor count (drives the on-page counter)
+        runTransaction(ref(db, 'visitors/count'), n => (n || 0) + 1)
+            .then(r => window._onVisitorCount && window._onVisitorCount(r.snapshot.val()))
+            .catch(() => window._onVisitorCount && window._onVisitorCount(1));
+
+        // Unique visitors
+        if (!localStorage.getItem('_fbuniq')) {
+            localStorage.setItem('_fbuniq', '1');
+            inc('visitors/unique');
+        }
+
+        // Page view
+        inc('pages/home');
+
+        // Device type
+        inc(/Mobi|Android/i.test(navigator.userAgent) ? 'devices/mobile' : 'devices/desktop');
+
+        // Referrer
+        const referrer = (() => {
+            if (!document.referrer) return 'direct';
+            try {
+                const h = new URL(document.referrer).hostname;
+                if (h.includes('google')) return 'google';
+                if (h.includes('github')) return 'github';
+                if (h.includes('twitter') || h.includes('x.com')) return 'twitter';
+                return 'other';
+            } catch(e) { return 'other'; }
+        })();
+        inc('referrers/' + referrer);
+
+        // Country + city via ipapi.co
+        fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(d => {
+                if (d.country_code) inc('countries/' + d.country_code.toUpperCase());
+                if (d.city)         inc('cities/' + d.city.replace(/\s+/g, '_'));
             })
-            .catch(() => {
-                // Firebase unavailable — show 1 as fallback
-                if (window._onVisitorCount) window._onVisitorCount(1);
-            });
+            .catch(() => {});
+
+        // Expose hooks for store clicks and splash exit method
+        window._trackStore  = product => inc('store/' + product);
+        window._trackSplash = method  => inc('splash/' + method);
     </script>
 </body>
 </html>
