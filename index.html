@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://unpkg.com; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app https://ipapi.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://unpkg.com; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app https://ipwho.is/">
     <meta name="referrer" content="no-referrer">
     <title>Fake Bobby, Fake David & Fake Tommy</title>
     <link rel="icon" type="image/png" href="images/fake-bobby-logo.png">
@@ -1617,7 +1617,10 @@
             group.rotation.y = rotY;
             group.rotation.x = rotX;
             const t = clock.getElapsedTime();
-            meshes.forEach(m => { m.material.uniforms.uTime.value = t; });
+            meshes.forEach(m => {
+                const mat = Array.isArray(m.material) ? m.material[4] : m.material;
+                if (mat && mat.uniforms) mat.uniforms.uTime.value = t;
+            });
             renderer.render(scene, camera);
         })();
 
@@ -1671,8 +1674,8 @@
         })();
         inc('referrers/' + referrer);
 
-        // Country + city via ipapi.co
-        fetch('https://ipapi.co/json/')
+        // Country + city via ipwho.is (CORS-friendly)
+        fetch('https://ipwho.is/')
             .then(r => r.json())
             .then(d => {
                 if (d.country_code) inc('countries/' + d.country_code.toUpperCase());
