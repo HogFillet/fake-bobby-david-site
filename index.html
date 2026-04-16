@@ -1450,6 +1450,7 @@
     <script type="module">
         import * as THREE from 'https://unpkg.com/three@0.163.0/build/three.module.js';
 
+        (async function() {
         const canvas = document.getElementById('carouselCanvas');
         if (!canvas) return;
 
@@ -1598,6 +1599,8 @@
             meshes.forEach(m => { m.material.uniforms.uTime.value = t; });
             renderer.render(scene, camera);
         })();
+
+        })(); // end IIFE
     </script>
 
     <script type="module">
