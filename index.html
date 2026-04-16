@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://images.unsplash.com https://placehold.co https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app; img-src 'self' data: https:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app;">
     <meta name="referrer" content="no-referrer">
     <title>Fake Bobby, Fake David & Fake Tommy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #0050ff;
@@ -914,9 +914,184 @@
                 display: none;
             }
         }
+
+        /* ===== SPLASH OVERLAY ===== */
+        .splash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            color: #e0e0e0;
+            padding: 24px 32px;
+            cursor: pointer;
+            transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+
+        .splash-overlay.exiting {
+            transform: translateY(-100%);
+        }
+
+        .splash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+
+        .splash-logo {
+            font-size: 13px;
+            font-weight: 400;
+            color: #e0e0e0;
+        }
+
+        .splash-clock {
+            font-size: 13px;
+            color: #555;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .splash-hr {
+            border: none;
+            border-top: 1px solid #1a1a1a;
+            margin: 0;
+        }
+
+        .splash-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .carousel-scene {
+            perspective: 800px;
+            width: 300px;
+            height: 300px;
+            position: relative;
+            cursor: grab;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .carousel-scene:active {
+            cursor: grabbing;
+        }
+
+        .carousel-track {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+        }
+
+        .carousel-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .face-1 { transform: rotateY(0deg)   translateZ(87px); }
+        .face-2 { transform: rotateY(120deg)  translateZ(87px); }
+        .face-3 { transform: rotateY(240deg)  translateZ(87px); }
+
+        .carousel-face img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
+
+        @media (max-width: 480px) {
+            .carousel-scene,
+            .carousel-face {
+                width: 220px;
+                height: 220px;
+            }
+            .face-1 { transform: rotateY(0deg)   translateZ(64px); }
+            .face-2 { transform: rotateY(120deg)  translateZ(64px); }
+            .face-3 { transform: rotateY(240deg)  translateZ(64px); }
+        }
+
+        .splash-subtitle {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .splash-subtitle.muted {
+            font-size: 11px;
+            color: #2e2e2e;
+        }
+
+        .splash-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .splash-enter {
+            font-size: 13px;
+            color: #e0e0e0;
+        }
+
+        .splash-hint {
+            font-size: 11px;
+            color: #333;
+            animation: splashBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes splashBlink {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.2; }
+        }
     </style>
 </head>
 <body>
+    <!-- SPLASH OVERLAY -->
+    <div class="splash-overlay" id="splashOverlay">
+        <div class="splash-header">
+            <span class="splash-logo">Fake Healthcare Experts</span>
+            <span class="splash-clock" id="splashClock">00:00:00</span>
+        </div>
+        <hr class="splash-hr">
+        <div class="splash-body">
+            <div class="carousel-scene" id="carouselScene">
+                <div class="carousel-track" id="carouselTrack">
+                    <div class="carousel-face face-1">
+                        <img src="images/fake-bobby-logo.png" alt="Fake Bobby" draggable="false">
+                    </div>
+                    <div class="carousel-face face-2">
+                        <img src="images/fake-david-logo.png" alt="Fake David" draggable="false">
+                    </div>
+                    <div class="carousel-face face-3">
+                        <img src="images/fake-tommy-logo.png" alt="Fake Tommy" draggable="false">
+                    </div>
+                </div>
+            </div>
+            <p class="splash-subtitle">Fake Bobby &mdash; Fake David &mdash; Fake Tommy</p>
+            <p class="splash-subtitle muted">A satirical, educational website demonstrating how to identify phishing.</p>
+        </div>
+        <hr class="splash-hr">
+        <div class="splash-footer">
+            <span class="splash-enter">[Enter]</span>
+            <span class="splash-hint">click anywhere to enter</span>
+        </div>
+    </div>
+
     <div class="warning-banner" id="warningBanner">
         ⚠️ THIS IS A PARODY SITE ⚠️ Don't fall for real health scams or phishing! Always verify healthcare providers' credentials.
     </div>
@@ -1132,6 +1307,125 @@
     </section>
     
     <script>
+        // Splash overlay
+        (function() {
+            function updateSplashClock() {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                const el = document.getElementById('splashClock');
+                if (el) el.textContent = h + ':' + m + ':' + s;
+            }
+            updateSplashClock();
+            const clockInterval = setInterval(updateSplashClock, 1000);
+
+            function dismissSplash() {
+                const overlay = document.getElementById('splashOverlay');
+                if (!overlay || overlay.classList.contains('exiting')) return;
+                overlay.classList.add('exiting');
+                clearInterval(clockInterval);
+                setTimeout(function() { overlay.style.display = 'none'; }, 900);
+            }
+
+            document.addEventListener('click', function() {
+                if (window._splashCarouselDragged) { window._splashCarouselDragged = false; return; }
+                dismissSplash();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') dismissSplash();
+            }, { once: true });
+        })();
+
+        // Carousel interaction
+        (function() {
+            var scene = document.getElementById('carouselScene');
+            var track = document.getElementById('carouselTrack');
+            if (!scene || !track) return;
+
+            var angleY = 0;
+            var angleX = 0;
+            var rafId = null;
+            var lastTime = null;
+            var isDragging = false;
+            var dragStartX = 0;
+            var dragStartY = 0;
+            var dragStartAngleY = 0;
+            var dragStartAngleX = 0;
+            var dragMoved = false;
+            var SPEED = 40; // degrees per second
+
+            function applyTransform() {
+                track.style.transform = 'rotateY(' + angleY + 'deg) rotateX(' + angleX + 'deg)';
+            }
+
+            function step(time) {
+                if (!lastTime) lastTime = time;
+                angleY += SPEED * (time - lastTime) / 1000;
+                lastTime = time;
+                applyTransform();
+                rafId = requestAnimationFrame(step);
+            }
+
+            function startSpin() { lastTime = null; rafId = requestAnimationFrame(step); }
+            function stopSpin() { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+
+            // Mouse
+            scene.addEventListener('mousedown', function(e) {
+                stopSpin();
+                isDragging = true;
+                dragMoved = false;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                dragStartAngleY = angleY;
+                dragStartAngleX = angleX;
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                var dx = e.clientX - dragStartX;
+                var dy = e.clientY - dragStartY;
+                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
+                angleY = dragStartAngleY + dx * 0.4;
+                angleX = dragStartAngleX + dy * 0.4;
+                applyTransform();
+            });
+            window.addEventListener('mouseup', function() {
+                if (!isDragging) return;
+                isDragging = false;
+                if (dragMoved) window._splashCarouselDragged = true;
+                setTimeout(startSpin, 700);
+            });
+
+            // Touch
+            scene.addEventListener('touchstart', function(e) {
+                stopSpin();
+                isDragging = true;
+                dragMoved = false;
+                dragStartX = e.touches[0].clientX;
+                dragStartY = e.touches[0].clientY;
+                dragStartAngleY = angleY;
+                dragStartAngleX = angleX;
+            }, { passive: true });
+            window.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                var dx = e.touches[0].clientX - dragStartX;
+                var dy = e.touches[0].clientY - dragStartY;
+                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
+                angleY = dragStartAngleY + dx * 0.4;
+                angleX = dragStartAngleX + dy * 0.4;
+                applyTransform();
+            }, { passive: true });
+            window.addEventListener('touchend', function() {
+                if (!isDragging) return;
+                isDragging = false;
+                if (dragMoved) window._splashCarouselDragged = true;
+                setTimeout(startSpin, 700);
+            });
+
+            startSpin();
+        })();
+
         // Security logging
         console.log('%c🔒 Security Features Active', 'color: green; font-size: 16px; font-weight: bold;');
         console.log('- Content Security Policy (CSP) headers enabled');
@@ -1172,35 +1466,31 @@
                 }
             });
 
-            // Visitor counter
+            // Visitor counter — populated async by Firebase
             const visitorCounter = document.getElementById('visitor-count');
-            let count = localStorage.getItem('visitorCount');
-            
-            if (!count) {
-                count = 1;
-            } else {
-                count = parseInt(count) + 1;
-            }
-            
-            localStorage.setItem('visitorCount', count);
-            
-            // Animate counter
+
             const animateCount = (el, target) => {
-                let count = 0;
-                const duration = 2000;
-                const step = target / (duration / 16);
-                
-                const updateCount = () => {
-                    count += step;
-                    if (count < target) {
-                        el.textContent = Math.floor(count).toLocaleString();
-                        requestAnimationFrame(updateCount);
+                let n = 0;
+                const step = target / (2000 / 16);
+                const update = () => {
+                    n += step;
+                    if (n < target) {
+                        el.textContent = Math.floor(n).toLocaleString();
+                        requestAnimationFrame(update);
                     } else {
                         el.textContent = Math.floor(target).toLocaleString();
                     }
                 };
-                
-                updateCount();
+                update();
+            };
+
+            // Called by Firebase module once count is ready
+            window._onVisitorCount = function(count) {
+                if (window._statsInView) {
+                    animateCount(visitorCounter, count);
+                } else {
+                    window._pendingVisitorCount = count;
+                }
             };
             
             // Reveal elements on scroll
@@ -1268,18 +1558,47 @@
             window.addEventListener('scroll', handleScroll);
             handleScroll();
             
-            // Animate counter when stats section is in view
+            // Animate counter when stats section scrolls into view
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        animateCount(visitorCounter, count);
+                        window._statsInView = true;
+                        if (window._pendingVisitorCount !== undefined) {
+                            animateCount(visitorCounter, window._pendingVisitorCount);
+                        }
                         observer.unobserve(entry.target);
                     }
                 });
             }, { threshold: 0.5 });
-            
+
             observer.observe(document.querySelector('.stats'));
         });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const app = initializeApp({
+            apiKey: "AIzaSyA5EmDIEdSnsxx22-tkof4GWSmJesrU5bI",
+            authDomain: "fakebobby.firebaseapp.com",
+            databaseURL: "https://fakebobby-default-rtdb.firebaseio.com",
+            projectId: "fakebobby",
+            storageBucket: "fakebobby.firebasestorage.app",
+            messagingSenderId: "734349306360",
+            appId: "1:734349306360:web:ed3e6f5dfcf86db3a38e0d"
+        });
+
+        const db = getDatabase(app);
+
+        runTransaction(ref(db, 'visitors/count'), (n) => (n || 0) + 1)
+            .then(result => {
+                if (window._onVisitorCount) window._onVisitorCount(result.snapshot.val());
+            })
+            .catch(() => {
+                // Firebase unavailable — show 1 as fallback
+                if (window._onVisitorCount) window._onVisitorCount(1);
+            });
     </script>
 </body>
 </html>
