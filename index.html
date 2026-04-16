@@ -1526,6 +1526,15 @@
         const group = new THREE.Group();
         scene.add(group);
 
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+        const rimLight = new THREE.DirectionalLight(0x8888ff, 0.6);
+        rimLight.position.set(-5, -2, -5);
+        scene.add(rimLight);
+
         const RADIUS = 1.5;
         const meshes = [];
         const loader = new THREE.TextureLoader();
@@ -1539,15 +1548,25 @@
                 const angle = (i / 3) * Math.PI * 2;
                 const aspect = texture.image.width / texture.image.height;
                 const w = 2.0, h = w / aspect;
+                const depth = 0.14;
+
+                const shaderMat = new THREE.ShaderMaterial({
+                    uniforms: { uTexture: { value: texture }, uTime: { value: 0 } },
+                    vertexShader,
+                    fragmentShader,
+                    transparent: true,
+                });
+                const sideMat = new THREE.MeshStandardMaterial({
+                    color: 0x111111,
+                    metalness: 0.95,
+                    roughness: 0.1,
+                });
+                // BoxGeometry face order: +X, -X, +Y, -Y, +Z (front), -Z (back)
+                const materials = [sideMat, sideMat, sideMat, sideMat, shaderMat, sideMat];
+
                 const mesh = new THREE.Mesh(
-                    new THREE.PlaneGeometry(w, h),
-                    new THREE.ShaderMaterial({
-                        uniforms: { uTexture: { value: texture }, uTime: { value: 0 } },
-                        vertexShader,
-                        fragmentShader,
-                        transparent: true,
-                        side: THREE.DoubleSide,
-                    })
+                    new THREE.BoxGeometry(w, h, depth),
+                    materials
                 );
                 mesh.position.set(Math.sin(angle) * RADIUS, 0, Math.cos(angle) * RADIUS);
                 mesh.rotation.y = angle;
