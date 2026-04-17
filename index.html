@@ -1540,7 +1540,6 @@
         rimLight.position.set(-5, -2, -5);
         scene.add(rimLight);
 
-        const RADIUS = 1.5;
         const meshes = [];
         const loader = new THREE.TextureLoader();
 
@@ -1575,44 +1574,30 @@
             });
         }
 
-        Promise.all([
-            'images/fake-bobby-logo.png',
-            'images/fake-david-logo.png',
-            'images/fake-tommy-logo.png',
-        ].map(src => loader.loadAsync(src))).then(textures => {
-            textures.forEach((texture, i) => {
-                const angle = (i / 3) * Math.PI * 2;
-                const aspect = texture.image.width / texture.image.height;
-                const w = 2.0, h = w / aspect;
-                const depth = 0.45;
+        loader.loadAsync('images/fake-bobby-logo.png').then(texture => {
+            const aspect = texture.image.width / texture.image.height;
+            const w = 2.6, h = w / aspect;
+            const depth = 0.45;
 
-                const shaderMat = new THREE.ShaderMaterial({
-                    uniforms: { uTexture: { value: texture }, uTime: { value: 0 } },
-                    vertexShader,
-                    fragmentShader,
-                    transparent: true,
-                });
-
-                // Sample the matching edge of the logo image on each side face.
-                // BoxGeometry face order: +X(right), -X(left), +Y(top), -Y(bottom), +Z(front), -Z(back)
-                // uUseFixed=(1,0) → fix U, vary V by vUv.y (vertical strip)
-                // uUseFixed=(0,1) → vary U by vUv.x, fix V (horizontal strip)
-                const rightMat  = makeEdgeMat(texture, 1.0, 0.5, 1, 0); // right column
-                const leftMat   = makeEdgeMat(texture, 0.0, 0.5, 1, 0); // left column
-                const topMat    = makeEdgeMat(texture, 0.5, 1.0, 0, 1); // top row
-                const bottomMat = makeEdgeMat(texture, 0.5, 0.0, 0, 1); // bottom row
-
-                const materials = [rightMat, leftMat, topMat, bottomMat, shaderMat, shaderMat];
-
-                const mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(w, h, depth),
-                    materials
-                );
-                mesh.position.set(Math.sin(angle) * RADIUS, 0, Math.cos(angle) * RADIUS);
-                mesh.rotation.y = angle;
-                group.add(mesh);
-                meshes.push(mesh);
+            const shaderMat = new THREE.ShaderMaterial({
+                uniforms: { uTexture: { value: texture }, uTime: { value: 0 } },
+                vertexShader,
+                fragmentShader,
+                transparent: true,
             });
+
+            // BoxGeometry face order: +X(right), -X(left), +Y(top), -Y(bottom), +Z(front), -Z(back)
+            const rightMat  = makeEdgeMat(texture, 1.0, 0.5, 1, 0);
+            const leftMat   = makeEdgeMat(texture, 0.0, 0.5, 1, 0);
+            const topMat    = makeEdgeMat(texture, 0.5, 1.0, 0, 1);
+            const bottomMat = makeEdgeMat(texture, 0.5, 0.0, 0, 1);
+
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(w, h, depth),
+                [rightMat, leftMat, topMat, bottomMat, shaderMat, shaderMat]
+            );
+            group.add(mesh);
+            meshes.push(mesh);
         });
 
         // Drag interaction
