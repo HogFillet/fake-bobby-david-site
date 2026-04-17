@@ -1581,8 +1581,9 @@
                 fresnel = pow(fresnel, 1.5);
 
                 if (mn.z > 0.5) {
-                    // Front cap (always +Z in model space regardless of rotation)
+                    // Front cap
                     vec4 tex = texture2D(uTexture, vec2(px, py));
+                    if (tex.a < 0.05) discard;
                     float hue = fresnel * 0.7 + uTime * 0.08;
                     vec3 irid = hue2rgb(hue);
                     float shimmer = sin(px * 15.0 + uTime * 2.0) * sin(py * 15.0 - uTime * 1.5);
@@ -1593,10 +1594,11 @@
                 } else if (mn.z < -0.5) {
                     // Back cap: logo mirrored
                     vec4 tex = texture2D(uTexture, vec2(1.0 - px, py));
+                    if (tex.a < 0.05) discard;
                     gl_FragColor = vec4(tex.rgb, tex.a);
 
                 } else {
-                    // Side walls: sample nearest edge pixel of the logo
+                    // Side walls: sample nearest edge pixel; discard where logo is transparent
                     float dRight  = 1.0 - px;
                     float dLeft   = px;
                     float dTop    = 1.0 - py;
@@ -1610,9 +1612,10 @@
                         sampleUV = vec2(px, 0.97);
                     else
                         sampleUV = vec2(px, 0.03);
-                    vec3 edgeCol = texture2D(uTexture, sampleUV).rgb;
-                    vec3 col = edgeCol * 0.65 + vec3(fresnel * 0.3);
-                    gl_FragColor = vec4(col, 1.0);
+                    vec4 edgeSample = texture2D(uTexture, sampleUV);
+                    if (edgeSample.a < 0.05) discard;
+                    vec3 col = edgeSample.rgb * 0.65 + vec3(fresnel * 0.3);
+                    gl_FragColor = vec4(col, edgeSample.a);
                 }
             }
         `;
