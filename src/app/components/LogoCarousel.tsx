@@ -93,7 +93,7 @@ const fragmentShader = /* glsl */`
       gl_FragColor = vec4(color, max(tex.a, glassAlpha));
 
     } else if (mn.z < -0.5) {
-      vec2 uv = vec2(1.0 - px, py);
+      vec2 uv = vec2(px, py);
       vec4 tex = texture2D(uTexture, uv);
       vec3 bumpN = alphaBumpNormal(n, uv, 1.4);
       float bFresnel = 1.0 - max(dot(bumpN, normalize(vViewDir)), 0.0);
