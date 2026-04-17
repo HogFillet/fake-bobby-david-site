@@ -1580,25 +1580,30 @@
                 float fresnel = 1.0 - max(dot(n, normalize(vViewDir)), 0.0);
                 fresnel = pow(fresnel, 1.5);
 
+                // Glass iridescence for transparent areas — same shimmer as opaque logo
+                float hue = fresnel * 0.7 + uTime * 0.08;
+                vec3 irid = hue2rgb(hue);
+                float shimmer = sin(px * 15.0 + uTime * 2.0) * sin(py * 15.0 - uTime * 1.5);
+                shimmer = shimmer * 0.5 + 0.5;
+                vec3 glassColor = irid * (fresnel * 0.6 + shimmer * 0.2);
+                float glassAlpha = fresnel * 0.35 + shimmer * 0.05;
+
                 if (mn.z > 0.5) {
-                    // Front cap
+                    // Front cap: logo over iridescent glass
                     vec4 tex = texture2D(uTexture, vec2(px, py));
-                    if (tex.a < 0.05) discard;
-                    float hue = fresnel * 0.7 + uTime * 0.08;
-                    vec3 irid = hue2rgb(hue);
-                    float shimmer = sin(px * 15.0 + uTime * 2.0) * sin(py * 15.0 - uTime * 1.5);
-                    shimmer = shimmer * 0.5 + 0.5;
-                    vec3 color = tex.rgb + irid * fresnel * 0.3 + irid * shimmer * fresnel * 0.08;
-                    gl_FragColor = vec4(color, tex.a);
+                    vec3 color = mix(glassColor, tex.rgb + irid * fresnel * 0.3 + irid * shimmer * fresnel * 0.08, tex.a);
+                    float alpha = max(tex.a, glassAlpha);
+                    gl_FragColor = vec4(color, alpha);
 
                 } else if (mn.z < -0.5) {
-                    // Back cap: logo mirrored
+                    // Back cap: mirrored logo over glass
                     vec4 tex = texture2D(uTexture, vec2(1.0 - px, py));
-                    if (tex.a < 0.05) discard;
-                    gl_FragColor = vec4(tex.rgb, tex.a);
+                    vec3 color = mix(glassColor, tex.rgb, tex.a);
+                    float alpha = max(tex.a, glassAlpha);
+                    gl_FragColor = vec4(color, alpha);
 
                 } else {
-                    // Side walls: sample nearest edge pixel; discard where logo is transparent
+                    // Side walls: edge color where logo is opaque, glass shimmer where transparent
                     float dRight  = 1.0 - px;
                     float dLeft   = px;
                     float dTop    = 1.0 - py;
@@ -1613,9 +1618,10 @@
                     else
                         sampleUV = vec2(px, 0.03);
                     vec4 edgeSample = texture2D(uTexture, sampleUV);
-                    if (edgeSample.a < 0.05) discard;
-                    vec3 col = edgeSample.rgb * 0.65 + vec3(fresnel * 0.3);
-                    gl_FragColor = vec4(col, edgeSample.a);
+                    vec3 edgeCol = edgeSample.rgb * 0.65 + vec3(fresnel * 0.3);
+                    vec3 col = mix(glassColor, edgeCol, edgeSample.a);
+                    float alpha = max(edgeSample.a, glassAlpha * 0.5);
+                    gl_FragColor = vec4(col, alpha);
                 }
             }
         `;
@@ -1655,7 +1661,7 @@
                 vertexShader,
                 fragmentShader: unifiedFragShader,
                 transparent: true,
-                side: THREE.FrontSide,
+                side: THREE.DoubleSide,
             });
 
             const mesh = new THREE.Mesh(geom, mat);
