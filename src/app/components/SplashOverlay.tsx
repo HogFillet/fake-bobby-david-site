@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
-import LogoCard from './LogoCard'
+import LogoCarousel from './LogoCarousel'
 
 export default function SplashOverlay() {
   const [dismissed, setDismissed] = useState(false)
@@ -52,7 +52,7 @@ export default function SplashOverlay() {
       <div className="splash-body">
         <div className="splash-canvas-container">
           <Canvas
-            camera={{ fov: 55, position: [0, 0, 3.8] as [number, number, number] }}
+            camera={{ fov: 55, position: [0, 1.6, 4.2] as [number, number, number] }}
             gl={{ alpha: true, antialias: true }}
             style={{ background: 'transparent', width: '100%', height: '100%' }}
           >
@@ -60,7 +60,7 @@ export default function SplashOverlay() {
             <directionalLight position={[5, 5, 5]} intensity={1.5} />
             <directionalLight position={[-5, -2, -5]} intensity={0.6} color="#8888ff" />
             <Suspense fallback={null}>
-              <LogoCard />
+              <LogoCarousel />
             </Suspense>
           </Canvas>
         </div>
