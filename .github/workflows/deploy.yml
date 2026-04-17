@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject Firebase config
+        run: |
+          for f in index.html blog.html order.html; do
+            sed -i "s|%%FIREBASE_API_KEY%%|${{ secrets.FIREBASE_API_KEY }}|g" $f
+            sed -i "s|%%FIREBASE_AUTH_DOMAIN%%|${{ secrets.FIREBASE_AUTH_DOMAIN }}|g" $f
+            sed -i "s|%%FIREBASE_DATABASE_URL%%|${{ secrets.FIREBASE_DATABASE_URL }}|g" $f
+            sed -i "s|%%FIREBASE_PROJECT_ID%%|${{ secrets.FIREBASE_PROJECT_ID }}|g" $f
+            sed -i "s|%%FIREBASE_STORAGE_BUCKET%%|${{ secrets.FIREBASE_STORAGE_BUCKET }}|g" $f
+            sed -i "s|%%FIREBASE_MESSAGING_SENDER_ID%%|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g" $f
+            sed -i "s|%%FIREBASE_APP_ID%%|${{ secrets.FIREBASE_APP_ID }}|g" $f
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
