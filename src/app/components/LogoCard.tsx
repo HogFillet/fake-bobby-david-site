@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -137,6 +137,17 @@ const fragmentShader = /* glsl */`
 
 export default function LogoCard() {
   const meshRef = useRef<THREE.Mesh>(null)
+  // Track mouse globally so the card responds even when the cursor is outside the small canvas
+  const mouse = useRef({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
+      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
 
   const texture = useTexture('/images/test-cutout.png')
 
@@ -180,10 +191,10 @@ export default function LogoCard() {
     [texture],
   )
 
-  useFrame(({ pointer, clock }) => {
+  useFrame(({ clock }) => {
     if (!meshRef.current) return
-    meshRef.current.rotation.y += (pointer.x * 0.6 - meshRef.current.rotation.y) * 0.04
-    meshRef.current.rotation.x += (-pointer.y * 0.35 - meshRef.current.rotation.x) * 0.04
+    meshRef.current.rotation.y += (mouse.current.x * 0.6 - meshRef.current.rotation.y) * 0.04
+    meshRef.current.rotation.x += (-mouse.current.y * 0.35 - meshRef.current.rotation.x) * 0.04
     material.uniforms.uTime.value = clock.getElapsedTime()
   })
 
