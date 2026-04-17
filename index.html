@@ -1480,11 +1480,13 @@
         const vertexShader = `
             varying vec2 vUv;
             varying vec3 vNormal;
+            varying vec3 vModelNormal;
             varying vec3 vViewDir;
             varying vec3 vLocalPos;
             void main() {
                 vUv = uv;
                 vLocalPos = position;
+                vModelNormal = normal;
                 vNormal = normalize(normalMatrix * normal);
                 vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
                 vViewDir = normalize(-mvPos.xyz);
@@ -1553,6 +1555,7 @@
             uniform float uCardW;
             uniform float uCardH;
             varying vec3 vNormal;
+            varying vec3 vModelNormal;
             varying vec3 vViewDir;
             varying vec3 vLocalPos;
 
@@ -1565,16 +1568,20 @@
             }
 
             void main() {
-                vec3 n = normalize(vNormal);
-                // Position-based UV: always correct regardless of face UV orientation
+                // Use world-space normal for Fresnel lighting only.
+                // Use MODEL-space normal (unaffected by card rotation) to identify
+                // which face of the geometry we are on — front cap, back cap, or side wall.
+                vec3 n  = normalize(vNormal);
+                vec3 mn = normalize(vModelNormal);
+
                 float px = clamp((vLocalPos.x / uCardW) + 0.5, 0.0, 1.0);
                 float py = clamp((vLocalPos.y / uCardH) + 0.5, 0.0, 1.0);
 
                 float fresnel = 1.0 - max(dot(n, normalize(vViewDir)), 0.0);
                 fresnel = pow(fresnel, 1.5);
 
-                if (n.z > 0.5) {
-                    // Front face: logo + iridescent shimmer
+                if (mn.z > 0.5) {
+                    // Front cap (always +Z in model space regardless of rotation)
                     vec4 tex = texture2D(uTexture, vec2(px, py));
                     float hue = fresnel * 0.7 + uTime * 0.08;
                     vec3 irid = hue2rgb(hue);
@@ -1583,13 +1590,13 @@
                     vec3 color = tex.rgb + irid * fresnel * 0.3 + irid * shimmer * fresnel * 0.08;
                     gl_FragColor = vec4(color, tex.a);
 
-                } else if (n.z < -0.5) {
-                    // Back face: logo mirrored
+                } else if (mn.z < -0.5) {
+                    // Back cap: logo mirrored
                     vec4 tex = texture2D(uTexture, vec2(1.0 - px, py));
                     gl_FragColor = vec4(tex.rgb, tex.a);
 
                 } else {
-                    // Side faces: sample nearest edge of the logo
+                    // Side walls: sample nearest edge pixel of the logo
                     float dRight  = 1.0 - px;
                     float dLeft   = px;
                     float dTop    = 1.0 - py;
