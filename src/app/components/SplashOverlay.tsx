@@ -7,6 +7,8 @@ const LOGOS = [
   { src: '/images/fake-bobby-logo.png', preset: ['holo', 'bevel'] },
   { src: '/images/fake-david-logo.png', preset: ['sweep', 'reflection'] },
   { src: '/images/fake-tommy-logo.png', preset: ['sweep'] },
+  { src: '/images/logo-hacka.png',      preset: ['sparkles', 'bevel'] },
+  { src: '/images/logo-hack.png',       preset: ['holo', 'sweep'] },
 ]
 
 export default function SplashOverlay() {
