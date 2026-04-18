@@ -178,31 +178,44 @@ nav .nav-links a:hover {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  background-image: url('https://images.unsplash.com/photo-1504439468489-c8920d796a29?q=80&w=1772&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
 }
 
 .comic-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, var(--dark) 80%);
+  background: linear-gradient(rgba(10,11,16,0.72), rgba(10,11,16,0.88));
+}
+
+/* Halftone dot texture */
+.comic-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 .comic-speech-bubble {
   position: absolute;
-  background: #fff;
+  background: rgba(255,255,255,0.92);
   border: 3px solid #000;
   border-radius: 16px;
   padding: 10px 16px;
-  font-family: var(--font-space-grotesk);
-  font-size: 13px;
-  font-weight: 600;
+  font-family: 'Comic Sans MS', 'Chalkboard SE', var(--font-space-grotesk), cursive;
+  font-size: 15px;
+  font-weight: bold;
   color: #000;
-  opacity: 0.08;
+  opacity: 0.18;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
   animation: float 6s ease-in-out infinite;
 }
 
-.speech-bubble-1 { top: 20%; left: 5%; animation-delay: 0s; }
-.speech-bubble-2 { top: 35%; right: 5%; animation-delay: 2s; }
-.speech-bubble-3 { bottom: 25%; left: 8%; animation-delay: 4s; }
+.speech-bubble-1 { top: 20%; left: 5%; animation-delay: 0s; transform: rotate(3deg); }
+.speech-bubble-2 { top: 35%; right: 5%; animation-delay: 2s; transform: rotate(-2deg); }
+.speech-bubble-3 { bottom: 25%; left: 8%; animation-delay: 4s; transform: rotate(1deg); }
 
 .hero-content {
   max-width: 760px;
