@@ -28,7 +28,6 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
 }
 
 body {
@@ -145,7 +144,6 @@ nav .nav-links a:hover {
 /* ─── Sections ───────────────────────────────────────────────────────────── */
 .section {
   min-height: 100vh;
-  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -162,7 +160,6 @@ nav .nav-links a:hover {
 /* ─── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
   min-height: 100vh;
-  scroll-snap-align: start;
   position: relative;
   display: flex;
   flex-direction: column;

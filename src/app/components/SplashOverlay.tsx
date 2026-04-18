@@ -29,12 +29,6 @@ export default function SplashOverlay() {
 
   useEffect(() => { dismissRef.current = dismiss }, [dismiss])
 
-  // Lock body scroll while splash is up
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
-
   // Live clock — matches original format
   useEffect(() => {
     const tick = () => {
