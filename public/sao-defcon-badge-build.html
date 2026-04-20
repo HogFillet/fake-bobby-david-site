@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building an SAO for DEF CON | Fake Healthcare Experts</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #1e2130;
+            --text-primary: #e4e6ed;
+            --text-secondary: #9ca0b0;
+            --text-muted: #6b7084;
+            --accent: #7c8aff;
+            --accent-dim: rgba(124, 138, 255, 0.15);
+            --border: #2a2d3a;
+            --tag-bg: #252838;
+            --tag-text: #8b90a8;
+            --code-bg: #181b26;
+            --warning: #ffb347;
+            --success: #69db7c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav a:hover { color: var(--accent); }
+        .nav .nav-title { color: var(--text-primary); font-weight: 600; }
+
+        .container { max-width: 780px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+
+        .page-header { margin-bottom: 3rem; }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .page-header .subtitle { color: var(--text-secondary); font-size: 1rem; }
+
+        .date-divider {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 2.5rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.03em;
+        }
+
+        .entry {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .entry:hover { border-color: rgba(124, 138, 255, 0.3); }
+        .entry h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.01em; }
+        .entry h3 { font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--text-primary); }
+        .entry p { color: var(--text-secondary); margin-bottom: 0.75rem; font-size: 0.95rem; }
+        .entry ul, .entry ol { color: var(--text-secondary); margin: 0.5rem 0 1rem 1.5rem; font-size: 0.95rem; }
+        .entry li { margin-bottom: 0.35rem; }
+        .entry strong { color: var(--text-primary); font-weight: 600; }
+        .entry em { color: var(--text-muted); font-style: italic; }
+
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+        .tag { background: var(--tag-bg); color: var(--tag-text); font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.65rem; border-radius: 4px; letter-spacing: 0.02em; }
+        .tag.info { background: rgba(124, 138, 255, 0.12); color: #99a4ff; }
+        .tag.success { background: rgba(105, 219, 124, 0.12); color: var(--success); }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .callout {
+            background: var(--accent-dim);
+            border-left: 3px solid var(--accent);
+            padding: 0.85rem 1.15rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .callout.success {
+            background: rgba(105, 219, 124, 0.08);
+            border-left-color: var(--success);
+        }
+
+        hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 2rem 1rem; }
+            .entry { padding: 1.5rem; }
+            .page-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="blog.html" class="nav-title">Journal</a>
+    <a href="index.html">← Back to Main Site</a>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>Project Journal</h1>
+        <p class="subtitle">Notes, experiments, and documentation</p>
+    </div>
+
+    <div class="date-divider">May 25, 2025</div>
+
+    <article class="entry">
+        <h2>Building an SAO for DEF CON — 555 Timer LED Chaser</h2>
+        <div class="tags">
+            <span class="tag">DEF CON</span>
+            <span class="tag">SAO</span>
+            <span class="tag">Hardware</span>
+            <span class="tag info">555 Timer</span>
+            <span class="tag">KiCad</span>
+            <span class="tag">Project</span>
+        </div>
+
+        <p>I've been working on a Simple Add-On (SAO) for DEF CON — a small self-contained LED chaser that uses purely analog components. No microcontroller, no programming, no firmware. Just a 555 timer, a 4017 decade counter, and eight LEDs doing their thing.</p>
+
+        <h3>The Design</h3>
+
+        <p>The concept is straightforward: a <strong>555 timer</strong> generates clock pulses that feed into a <strong>CD4017 ten-step counter</strong>. Each clock pulse advances the counter to the next output, which lights up the corresponding LED. When it cycles through all the outputs, it wraps back around and starts over. The result is a sequential LED chase pattern — the kind of blinking circuit that's been a staple of electronics hobbyists for decades, but there's something satisfying about building one from scratch on a custom PCB.</p>
+
+        <p>The speed is adjustable via a <strong>TC33X-2-104E trimmer potentiometer</strong> (100kΩ SMD trimmer) that controls the charge rate of the timing capacitor. Turn it one way and the LEDs crawl; turn it the other way and they race. Range works out to roughly 0.1 to 1.2 seconds per step depending on where you set it.</p>
+
+        <h3>Circuit Breakdown</h3>
+
+        <p>The 555 runs in astable mode — free-running oscillator. The timing components:</p>
+
+        <ul>
+            <li><strong>R1 (10kΩ):</strong> Between VCC and pin 7 (discharge)</li>
+            <li><strong>Trimmer pot:</strong> Pin 1 to VCC, pins 2 and 3 to the timing junction</li>
+            <li><strong>C1 (10µF electrolytic):</strong> Timing capacitor, positive to the junction (pins 2 &amp; 6), negative to ground</li>
+            <li><strong>C2 (0.01µF):</strong> Decoupling cap on pin 5 (control voltage) to ground</li>
+        </ul>
+
+        <p>Pin 3 (output) feeds directly into the 4017's clock input (pin 14). The 4017 steps through its ten outputs sequentially — I'm using eight of them for LEDs, with each output driving an LED through a <strong>150Ω current-limiting resistor</strong>. At 3.3V supply with ~2V LED forward voltage, that works out to about 8.7mA per LED. Bright enough to see, conservative enough to not stress anything.</p>
+
+        <p>The LEDs are <strong>Würth Elektronik 155124YS73200</strong> — yellow side-view SMD LEDs in a 1204 package. I went with side-view LEDs because I'm placing them in a random "constellation" pattern across the board rather than in a straight line. The randomness makes each board look a little different, which I like.</p>
+
+        <h3>The Board</h3>
+
+        <p>Designed in <strong>KiCad</strong>. Board dimensions are <strong>60mm x 60mm</strong> — standard SAO territory. The SAO v2 connector (2x3 pin header) sits at the bottom center of the board. Only two pins are actually connected: <strong>VCC (3.3V) and ground.</strong> The I2C and GPIO pins are left floating — this SAO is entirely self-contained and doesn't need any interaction with the host badge.</p>
+
+        <p>Layout priorities were keeping the 555 timing components close together to minimize noise, short clock trace from the 555 output to the 4017 input, and then spreading the LEDs out across the remaining board space in that random pattern. Each LED gets its own 150Ω resistor placed close to it.</p>
+
+        <p>Added decoupling caps on both ICs — 0.01µF between VCC and ground, placed as close to the power pins as possible. The 4017 especially benefits from clean power since it's a CMOS part and can get glitchy with noisy supply rails.</p>
+
+        <h3>Component Choices</h3>
+
+        <p>Went with SMD across the board since I wanted to practice my surface mount soldering. The resistors are <strong>RG2012P-151-B-T5</strong> — Susumu thin-film, 150Ω, ±0.1% tolerance, 0805 package. Way more precision than this circuit needs, but they were available and the 0805 package is a nice size for hand soldering without being microscopic.</p>
+
+        <p>The trimmer pot doesn't need to be accessible after assembly — once you set the blink speed you like, you leave it. So it's buried on the board with the other components rather than positioned at an edge.</p>
+
+        <h3>What I Learned</h3>
+
+        <p>A few things came up during the design process:</p>
+
+        <p>The 555 pin 7 (discharge) should connect to R1 and VCC — <strong>not</strong> to the timing capacitor. Got that wrong initially. The discharge pin's job is to provide a path for the capacitor to discharge through the resistor, creating the oscillation. If you connect it directly to the cap, you short the discharge path and the timing breaks.</p>
+
+        <p>The 4017 works fine with fewer than ten LEDs connected. The outputs that don't have LEDs just pulse into nothing — the counter still steps through all ten positions, so you get a brief "dark" period in the sequence where no LED is lit. With eight LEDs on a ten-step counter, two steps are dark, which actually creates a nice visual pause in the chase pattern.</p>
+
+        <p>Decoupling capacitors go between each IC's power and ground pins — not between the two ICs. Each chip gets its own local energy reservoir to smooth out power supply noise. Seems obvious in retrospect, but it's one of those things where the schematic doesn't always make the physical placement intuitive.</p>
+
+        <h3>Next Steps</h3>
+
+        <div class="callout success">
+            <strong>UPDATE:</strong> PCBs arrived and it works — with a minor catch. Simple, eye-catching SAO that just plugs into any badge and does its thing. No code to flash, no batteries to worry about, just power and ground.
+        </div>
+    </article>
+
+    <div class="footer">
+        <p>Personal project journal — Not indexed by search engines</p>
+    </div>
+
+</div>
+
+</body>
+</html>
