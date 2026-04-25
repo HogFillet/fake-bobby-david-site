@@ -125,10 +125,33 @@
             border-top: 1px solid var(--border);
         }
 
+        .photo-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.25rem 0;
+        }
+
+        .photo-grid.two-col { grid-template-columns: 1fr 1fr; }
+
+        .photo-grid img, .photo-single img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        .photo-caption {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0.4rem;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 2rem 1rem; }
             .entry { padding: 1.5rem; }
             .page-header h1 { font-size: 1.5rem; }
+            .photo-grid.two-col { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -161,6 +184,11 @@
 
         <p>I've been working on a Simple Add-On (SAO) for DEF CON — a small self-contained LED chaser that uses purely analog components. No microcontroller, no programming, no firmware. Just a 555 timer, a 4017 decade counter, and eight LEDs doing their thing.</p>
 
+        <div class="photo-single">
+            <img src="images/SAO-6.jpeg" alt="Complete set of SAO boards">
+            <p class="photo-caption">The complete set of boards</p>
+        </div>
+
         <h3>The Design</h3>
 
         <p>The concept is straightforward: a <strong>555 timer</strong> generates clock pulses that feed into a <strong>CD4017 ten-step counter</strong>. Each clock pulse advances the counter to the next output, which lights up the corresponding LED. When it cycles through all the outputs, it wraps back around and starts over. The result is a sequential LED chase pattern — the kind of blinking circuit that's been a staple of electronics hobbyists for decades, but there's something satisfying about building one from scratch on a custom PCB.</p>
@@ -190,6 +218,17 @@
 
         <p>Added decoupling caps on both ICs — 0.01µF between VCC and ground, placed as close to the power pins as possible. The 4017 especially benefits from clean power since it's a CMOS part and can get glitchy with noisy supply rails.</p>
 
+        <div class="photo-grid two-col">
+            <div>
+                <img src="images/SAO-1.jpeg" alt="PCB backside showing circuit components">
+                <p class="photo-caption">Backside — circuit components</p>
+            </div>
+            <div>
+                <img src="images/SAO-4.jpeg" alt="PCB backside showing circuit layout">
+                <p class="photo-caption">Backside — component layout</p>
+            </div>
+        </div>
+
         <h3>Component Choices</h3>
 
         <p>Went with SMD across the board since I wanted to practice my surface mount soldering. The resistors are <strong>RG2012P-151-B-T5</strong> — Susumu thin-film, 150Ω, ±0.1% tolerance, 0805 package. Way more precision than this circuit needs, but they were available and the 0805 package is a nice size for hand soldering without being microscopic.</p>
@@ -210,6 +249,17 @@
 
         <div class="callout success">
             <strong>UPDATE:</strong> PCBs arrived and it works — with a minor catch. Simple, eye-catching SAO that just plugs into any badge and does its thing. No code to flash, no batteries to worry about, just power and ground.
+        </div>
+
+        <div class="photo-grid two-col">
+            <div>
+                <img src="images/SAO-2.jpeg" alt="SAO badge lit up">
+                <p class="photo-caption">Badge powered up</p>
+            </div>
+            <div>
+                <img src="images/SAO-3.jpeg" alt="SAO badge lit up">
+                <p class="photo-caption">LEDs chasing</p>
+            </div>
         </div>
     </article>
 

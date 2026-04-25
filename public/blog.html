@@ -236,6 +236,16 @@
             font-size: 0.9rem;
         }
 
+        .entry-thumb {
+            float: right;
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 0 12px 16px;
+            border: 1px solid var(--gray-light);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .entry-header, .entry-content {
@@ -355,6 +365,7 @@
                 </div>
             </div>
             <div class="entry-content">
+                <img src="images/SAO-6.jpeg" alt="SAO complete set" class="entry-thumb">
                 <p>A purely analog Simple Add-On for DEF CON — a 555 timer driving a CD4017 decade counter that chases eight LEDs across a custom 60mm × 60mm PCB. No microcontroller, no firmware. Just power and ground.</p>
                 <p><a href="sao-defcon-badge-build.html">Read full article →</a></p>
             </div>
