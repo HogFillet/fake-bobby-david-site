@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Yourself, Not the Models | Fake Healthcare Experts</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #1e2130;
+            --text-primary: #e4e6ed;
+            --text-secondary: #9ca0b0;
+            --text-muted: #6b7084;
+            --accent: #7c8aff;
+            --accent-dim: rgba(124, 138, 255, 0.15);
+            --border: #2a2d3a;
+            --tag-bg: #252838;
+            --tag-text: #8b90a8;
+            --code-bg: #181b26;
+            --warning: #ffb347;
+            --danger: #ff6b6b;
+            --success: #69db7c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav a:hover { color: var(--accent); }
+        .nav .nav-title { color: var(--text-primary); font-weight: 600; }
+
+        .container { max-width: 780px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+
+        .page-header { margin-bottom: 3rem; }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .page-header .subtitle { color: var(--text-secondary); font-size: 1rem; font-style: italic; }
+        .page-header .meta { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.75rem; }
+
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0; }
+        .tag { background: var(--tag-bg); color: var(--tag-text); font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.65rem; border-radius: 4px; letter-spacing: 0.02em; }
+        .tag.info { background: rgba(124, 138, 255, 0.12); color: #99a4ff; }
+        .tag.danger { background: rgba(255, 107, 107, 0.12); color: #ff9898; }
+
+        .article-body h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 2.5rem 0 0.75rem;
+            letter-spacing: -0.01em;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .article-body h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 2rem 0 0.6rem;
+        }
+
+        .article-body p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem; }
+        .article-body strong { color: var(--text-primary); font-weight: 600; }
+        .article-body em { color: var(--text-muted); font-style: italic; }
+
+        .article-body ul, .article-body ol {
+            color: var(--text-secondary);
+            margin: 0.5rem 0 1.25rem 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .article-body li { margin-bottom: 0.5rem; }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .callout {
+            background: var(--accent-dim);
+            border-left: 3px solid var(--accent);
+            padding: 0.85rem 1.15rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1.25rem 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .callout.danger {
+            background: rgba(255, 107, 107, 0.08);
+            border-left-color: var(--danger);
+        }
+
+        .callout.warning {
+            background: rgba(255, 179, 71, 0.08);
+            border-left-color: var(--warning);
+        }
+
+        .article-img {
+            margin: 1.5rem 0;
+        }
+
+        .article-img img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        .article-img figcaption {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+        .references {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .references h2 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            border: none;
+            padding: 0;
+        }
+
+        .references ol {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.6;
+            padding-left: 1.5rem;
+        }
+
+        .references li { margin-bottom: 0.5rem; }
+        .references a { color: var(--accent); text-decoration: none; }
+        .references a:hover { text-decoration: underline; }
+
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 2rem 1rem; }
+            .page-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="blog.html" class="nav-title">Journal</a>
+    <a href="index.html">← Back to Main Site</a>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>Train Yourself, Not the Models</h1>
+        <p class="subtitle">How the AI revolution is quietly outsourcing your brain — and what to do about it</p>
+        <p class="meta">April 30, 2026</p>
+    </div>
+
+    <div class="tags">
+        <span class="tag">AI</span>
+        <span class="tag danger">Cybersecurity</span>
+        <span class="tag">Phishing</span>
+        <span class="tag info">ClickFix</span>
+        <span class="tag">Cognitive Science</span>
+        <span class="tag">Research</span>
+    </div>
+
+    <div class="article-body">
+
+        <p>There's a moment most of us have experienced but few of us talk about. You're in the middle of a task — drafting an email, solving a problem, navigating somewhere new — and before you've even tried, your hand is already reaching for your phone. Not to think. To ask.</p>
+
+        <p>It's frictionless. It's instant. And it might be making you dumber.</p>
+
+        <p>This isn't a knock against AI because honestly, these tools are genuinely extraordinary and getting more impressive by the minute. Using a tool half named "intelligence" shouldn't come at the cost of our own. Research is suggesting we're sliding, collectively and quietly, toward our intelligence suffering. <sup>[1]</sup></p>
+
+        <h2>When the Atrophied Brain Meets a Real Threat</h2>
+
+        <p>Here's where the abstract becomes visceral.</p>
+
+        <p>Imagine someone receives a message on LinkedIn. It looks legitimate — the branding is right, the tone is professional. It tells them their identity needs to be verified to maintain account access. A small popup instructs them to open their Terminal and paste a command to complete the verification. The command begins with <code>finger</code> — an old Unix utility — pointed at a remote server.</p>
+
+        <p>They paste it. They run it. They've just downloaded malware.</p>
+
+        <figure class="article-img">
+            <img src="images/clickfix-linkedin-screenshot.jpeg" alt="Real ClickFix attack on LinkedIn">
+            <figcaption>A real account of a ClickFix attack encountered on LinkedIn. The victim was prompted to "verify they are not a robot" using a keyboard shortcut — Windows + V — which opens the clipboard and executes a pre-loaded malicious command.</figcaption>
+        </figure>
+
+        <p>This attack is real. The technique is called <strong>ClickFix</strong> (also known as "paste-and-run"), and it has become one of the fastest-growing cyberattack vectors in the world. In 2025, ClickFix incidents surged over <strong>517%</strong>. Microsoft Threat Intelligence tracked campaigns targeting thousands of enterprise and personal devices <em>every single day</em>. Red Canary identified it as the <strong>second most popular initial access vector for cyberattacks</strong>, trailing only traditional phishing. <sup>[7][8]</sup></p>
+
+        <p>The attack is devastatingly simple: trick a user into copy-pasting a malicious command into their own Terminal or PowerShell. No exploit needed. No zero-day. Just a person who doesn't stop to think. <sup>[7]</sup></p>
+
+        <p>Why does it work? Because of exactly the cognitive patterns we'll be exploring throughout this piece. The user in our LinkedIn example had been trained — by years of CAPTCHA checks, identity prompts, and "complete this step to continue" UX — to comply with verification requests without scrutiny. They were conditioned to follow instructions, not interrogate them. The attackers didn't need to break through a firewall. They just needed to find someone who'd stopped asking "why?" <sup>[8]</sup></p>
+
+        <p>A sharper, more skeptical mind would have paused. <em>Why would LinkedIn need me to run a terminal command? What does <code>finger</code> do? What server is this pointing to?</em> But that kind of instinctive scrutiny — that critical friction — is precisely what atrophies when we outsource our thinking.</p>
+
+        <p>The attacker didn't hack the computer. They hacked the human.</p>
+
+        <h2>The Reversal of the Flynn Effect</h2>
+
+        <p>For most of the twentieth century, humans got smarter every generation. The "Flynn Effect" — named after researcher James Flynn — documented consistent rises in IQ scores across the developed world, decade after decade. Better nutrition, more education, richer abstract environments. The trend was so reliable it felt like destiny.</p>
+
+        <p>Then it stopped. Then it reversed.</p>
+
+        <p>Human cognitive skills — reasoning, problem-solving, attention span, critical thinking — have been in measurable decline since roughly the early 2010s, coinciding almost precisely with the rise of the smartphone and social media. Data from the Programme for International Student Assessment (PISA), which tracks learning outcomes in 15-year-olds globally, shows the sharpest drops among young people. Meanwhile, adult cognitive evaluations tell a similar story. In 2022, the National Endowment for the Arts found that only 37.6% of Americans had read a novel or short story in the past year, down from 45.2% a decade prior — and reading, as decades of research show, is one of the primary drivers of reasoning and abstract thought. <sup>[1]</sup></p>
+
+        <p>Now AI is accelerating this curve.</p>
+
+        <h2>The MIT Finding That Should Worry Everyone</h2>
+
+        <p>In a study at MIT's Media Lab, students were divided into groups based on how much they used AI tools like ChatGPT to complete tasks — including writing essays — over several months. The students who relied exclusively on AI finished their work faster, yes. But they also showed <strong>weaker brain connectivity, lower memory retention, and a diminished sense of ownership over their own work</strong>. <sup>[2]</sup></p>
+
+        <p>The brain, like a muscle, atrophies without use. When you outsource the cognitive effort — the struggle, the synthesis, the reaching for the right word — you don't save that mental energy for something better. You just don't use it. And that matters, because the act of <em>doing hard things</em> is what builds and preserves cognitive capacity.</p>
+
+        <p>This phenomenon has a name: <strong>cognitive offloading</strong>. It's not new — search engines already changed how we retain information (the "Google Effect" showed we're less likely to remember facts we believe we can look up). But AI goes further. It doesn't just store information we could retrieve. It <em>thinks</em> for us, <em>reasons</em> for us, <em>writes</em> for us. The cognitive workout is gone entirely. <sup>[3]</sup></p>
+
+        <p>A 2025 paper published in <em>Frontiers in Education</em> put it bluntly: are we entering the "dawn of the stupid age," driven by AI companies pushing products to market before we fully understand the psychological and cognitive costs? <sup>[4]</sup></p>
+
+        <h2>The Delegation Feedback Loop</h2>
+
+        <p>A 2026 paper on arXiv introduced a concept that should give pause to anyone paying attention: the <strong>Delegation Feedback Loop</strong>. The hypothesis is elegant and alarming. As AI gets more capable, the threshold at which we hand tasks over to it gets lower — extending now to tasks of almost zero cognitive demand. ("Write me a two-sentence reply declining this meeting.") The more we delegate, the less we practice. The less we practice, the less capable we feel. The less capable we feel, the more we delegate. <sup>[5]</sup></p>
+
+        <p>It's a spiral. And unlike most spirals, it feels comfortable on the way down.</p>
+
+        <h2>The Carnegie Mellon Warning</h2>
+
+        <p>In 2025, researchers at Microsoft Research and Carnegie Mellon University published what they described as the first study to directly examine the effects of AI tools on critical thinking in the workplace. Surveying 319 knowledge workers across 936 real-world AI-assisted tasks, they found a clear and troubling signal: <strong>higher confidence in GenAI was directly associated with less critical thinking</strong>. The inverse was equally true — higher self-confidence was associated with more critical thinking. <sup>[6]</sup></p>
+
+        <div class="callout warning">
+            <em>"A key irony of automation is that by mechanising routine tasks and leaving exception-handling to the human user, you deprive the user of the routine opportunities to practice their judgement and strengthen their cognitive musculature, leaving them atrophied and unprepared when the exceptions do arise."</em> <sup>[6]</sup>
+        </div>
+
+        <p>The researchers also found that workers with access to GenAI tools produced a less diverse set of outcomes for the same task compared to those working independently — a homogenization they interpreted as a measurable deterioration of critical and reflective judgment. The data shows a shift in cognitive effort: knowledge workers are increasingly moving from task execution to oversight. But oversight without comprehension is just rubber-stamping with extra steps. <sup>[6]</sup></p>
+
+        <h2>"I Can Spot a Fake" — No, You Probably Can't Anymore</h2>
+
+        <p>Let's address the most dangerous assumption in cybersecurity right now: the confident belief that you can recognize a phishing attack.</p>
+
+        <p>For years, the conventional wisdom held up. Bad grammar. Weird sender addresses. Suspicious urgency. Generic greetings. These were the tells, and a trained eye could catch them. Security awareness training was built around this premise — teach people the red flags and they'll stay safe.</p>
+
+        <p>That premise is now being systematically dismantled.</p>
+
+        <p>IBM X-Force research found that AI can generate highly convincing phishing emails in <strong>five minutes</strong>, compared to the sixteen hours typically required by an experienced human operator — a <strong>192× improvement</strong> in efficiency. Okta's threat intelligence team documented attackers using generative AI to build complete phishing sites in <strong>under 30 seconds</strong>. <sup>[9]</sup></p>
+
+        <p>Gone are the days of identifying phishing emails by spelling mistakes or grammar errors. According to threat intelligence data, <strong>67.4% of all phishing attacks in 2024 utilized some form of AI</strong> — producing polished, error-free messages tailored to specific industries, roles, and individuals. One cybersecurity researcher found it took just five prompts to instruct ChatGPT to generate targeted phishing emails for specific industry sectors. <sup>[10]</sup></p>
+
+        <p>The scale shift in late 2025 was the most dramatic signal yet. Hoxhunt analysts found that AI-generated phishing attacks represented under 5% of attacks for most of 2025 — then surged <strong>14x</strong> during the holiday season, jumping from 4% to <strong>56% of all reported attacks</strong> in December, dropping only slightly to 40% in January. This is not seasonal noise. It is a new baseline. <sup>[11]</sup></p>
+
+        <p>And critically — Microsoft data shows that AI-assisted phishing now achieves <strong>clickthrough rates of 54%</strong>, up from an average of 12% for generic phishing. More than half of people who receive a well-crafted AI-generated phishing message click on it. That's not a fringe risk. That's majority failure. <sup>[12]</sup></p>
+
+        <p>In a peer-reviewed study testing fully AI-automated spear phishing against human subjects, AI-generated attacks performed on par with human expert-crafted attacks and <strong>350% better than a control group</strong>. The AI gathered accurate, usable information about targets in 88% of cases. <sup>[13]</sup></p>
+
+        <p>The LinkedIn terminal-command attack described earlier in this piece is a perfect specimen of this new breed. It isn't a Nigerian prince email. It is contextually appropriate, professionally worded, platform-native, and timed to exploit a moment of low cognitive resistance. The "tells" that trained humans have been conditioned to look for simply aren't there.</p>
+
+        <div class="callout danger">
+            Here's the uncomfortable convergence: the CMU/Microsoft research showed that over-reliance on AI erodes the very critical thinking and information-verification skills you need to catch a sophisticated phishing attempt. Simultaneously, AI is making phishing attacks more convincing at an exponential rate. The attacker's tools are improving faster than the human detection skills meant to counter them — and those detection skills are being quietly atrophied by the same technology ecosystem that produced the attacks. <sup>[6][9]</sup>
+        </div>
+
+        <p>We are, in the most literal sense, being outpaced.</p>
+
+        <h3>So What Does Real Phishing Resistance Look Like?</h3>
+
+        <p>It starts with accepting that pattern recognition — "does this look suspicious?" — is no longer sufficient. The new fakes don't look suspicious. They look right. Which means the question to train yourself to ask isn't <em>"does this look legitimate?"</em> but <em>"did I initiate this?"</em></p>
+
+        <ul>
+            <li><strong>You never need to run a terminal command to verify your identity.</strong> Full stop. No platform — LinkedIn, Google, Microsoft, your bank — will ever ask you to open a command prompt and paste something. If a prompt claims otherwise, that is the attack.</li>
+            <li><strong>Urgency is the exploit.</strong> Every ClickFix and phishing attack is engineered to create time pressure — to narrow the window between receiving the prompt and questioning it. When you feel rushed, that feeling is the red flag. Slow down. <sup>[7]</sup></li>
+            <li><strong>Cross-channel verify.</strong> If you receive a message claiming to be from a colleague, your bank, or a platform asking you to take action — go to that platform directly through a URL you type yourself, not a link in the message. Call the person on a number you already have. One extra step breaks the entire social engineering chain.</li>
+            <li><strong>Train regularly, not once.</strong> Security awareness training works when it's continuous and adaptive. AI-driven simulation platforms now track which phishing lures consistently fool employees and ramp up difficulty over time — with one organization reporting employee threat-report rates jumping six-fold in six months. A one-time onboarding module isn't training. It's checkbox theater. <sup>[14]</sup></li>
+        </ul>
+
+        <p>The best defense against AI-powered phishing isn't a better spam filter. It's a mind that hasn't been conditioned into passive compliance — one that still asks <em>why</em> before it acts.</p>
+
+        <h2>Brandolini's Law and the Asymmetry of AI Garbage</h2>
+
+        <p>In 2013, Italian software engineer Alberto Brandolini observed something that has since become one of the most quoted laws of the internet age: the amount of energy needed to refute false information is an order of magnitude bigger than what's needed to produce it. <sup>[15]</sup></p>
+
+        <p>This is <strong>Brandolini's Law</strong> — also known as the Bullshit Asymmetry Principle — and AI has handed it a rocket ship.</p>
+
+        <p>Generating convincing, fluent, authoritative-sounding text now costs essentially nothing. Verifying it, fact-checking it, tracing it back to a primary source, and correcting the record when it's wrong? That still costs enormous human effort. The ratio between production and refutation — already badly imbalanced before AI — has become almost incomprehensible at scale. <sup>[15]</sup></p>
+
+        <p>Which brings us to an uncomfortable question we rarely ask plainly: <strong>Is AI giving us more good than bad?</strong></p>
+
+        <p>The optimistic answer points to breakthroughs — accelerated drug discovery, democratized access to expertise, productivity gains for knowledge workers, tools that genuinely help people who previously had no access to professional-grade assistance. These are real and meaningful.</p>
+
+        <p>But on the other side of the ledger, AI is generating misinformation at industrial speed. It is producing hallucinated legal citations being filed in real courts. It is authoring fabricated medical advice that patients are acting on. It is writing phishing emails so polished that even trained security professionals are being fooled. And it is doing all of this with the calm, confident tone of a subject matter expert — which is precisely what makes it dangerous. <sup>[16][17]</sup></p>
+
+        <h2>The Hallucination Problem Nobody Wants to Talk About</h2>
+
+        <p>Here's a number that should reframe how you use every AI tool you touch: depending on the benchmark, the model, and the domain, today's most advanced large language models hallucinate — generating plausible but factually incorrect information — at rates ranging from <strong>under 1% on simple grounded tasks to over 60% in complex specialized domains</strong>. <sup>[16]</sup></p>
+
+        <p>The range itself is the story.</p>
+
+        <p>On the optimistic end, the Vectara hallucination leaderboard — the industry's most widely cited benchmark — shows that for straightforward summarization of short documents, top models achieve hallucination rates as low as <strong>0.7%</strong>. That sounds reassuringly small until you realize that 0.7% across millions of daily interactions is still hundreds of thousands of wrong answers, delivered confidently, every single day. <sup>[16]</sup></p>
+
+        <p>When Vectara updated its benchmark in late 2025 to reflect real enterprise complexity — longer documents, legal and medical content, financial filings — the rates jumped dramatically. Every major "reasoning" model — GPT-5, Claude Sonnet 4.5, Grok-4, Gemini-3-Pro — exceeded <strong>10% hallucination rates</strong> on the harder dataset. The Grok-4-fast-reasoning variant hit <strong>20.2%</strong>. One in five answers. Wrong. <sup>[16]</sup></p>
+
+        <p>The domain numbers are worse. Medical scenario hallucination rates reach <strong>43–67%</strong> without grounding mechanisms. Open-ended generation tasks show rates of <strong>40–80%</strong>. A 2024 Stanford study found AI models collectively invented over 120 non-existent legal cases, complete with convincingly realistic names and fabricated reasoning. In 2025 alone, judges worldwide issued hundreds of rulings addressing AI hallucinations in legal filings — accounting for roughly <strong>90% of all known cases</strong> of the problem to date. <sup>[17]</sup></p>
+
+        <div class="callout danger">
+            MIT research found that when AI models hallucinate, they tend to use <em>more</em> confident language than when they're correct — phrases like "definitely," "certainly," and "without doubt" appearing <strong>34% more often</strong> in incorrect responses. The model doesn't know it's wrong. And it sounds most certain precisely when it is. <sup>[18]</sup>
+        </div>
+
+        <p>Now layer that on top of the CMU/Microsoft finding that the more you trust AI, the less critical thinking you apply. You have a system that hallucinates most confidently at the exact moment users are least likely to question it. That is not a bug in the user experience. That is a cognitive trap. <sup>[6][18]</sup></p>
+
+        <h2>The Intelligence We're Not Training</h2>
+
+        <p>The uncomfortable truth is that AI literacy and critical thinking aren't the same thing — and we're investing heavily in the former while neglecting the latter.</p>
+
+        <p>We're teaching people <em>how to prompt</em>. We're not teaching them <em>when to question</em>.</p>
+
+        <p>We're building workflows where AI summarizes, AI drafts, AI recommends, AI decides — and humans approve. But approval without comprehension isn't oversight. It's rubber-stamping. And rubber-stamping at scale, across an entire workforce, across an entire generation, is how you get a civilization that is simultaneously more technologically capable and less individually intelligent.</p>
+
+        <p>Researcher Umberto León Domínguez has warned that the intellectual capabilities essential for success in modern life need to be actively stimulated from childhood — especially during adolescence — and that educational systems must ensure young people engage in genuine cognitive effort. Not AI-assisted effort. <em>Effort.</em> <sup>[3]</sup></p>
+
+        <h2>What "Training Yourself" Actually Looks Like</h2>
+
+        <p>None of this means abandoning AI. It means being strategic about <em>where you use it</em> and <em>where you don't</em> — treating cognitive effort the way an athlete treats physical training.</p>
+
+        <ul>
+            <li><strong>Read longer things.</strong> Books. Long-form journalism. Research papers. Not summaries of them — the actual things. The discomfort of sustained attention is the whole point.</li>
+            <li><strong>Write first drafts yourself.</strong> Even badly. Especially badly. The struggle to organize your thoughts <em>is</em> the thinking. Using AI to polish a rough draft is fine. Using AI to replace having thoughts is not.</li>
+            <li><strong>Refuse easy answers in your domain of expertise.</strong> If you're a software engineer, don't let AI write code you haven't understood. If you're a lawyer, don't let AI analyze a contract you haven't read. Your expertise is the verification layer — and if you stop exercising it, it degrades. <sup>[6]</sup></li>
+            <li><strong>Practice deliberate skepticism.</strong> Before following <em>any</em> instruction you didn't seek out — a popup, a prompt, a message asking you to take an action — stop for three seconds and ask: <em>Who benefits from me doing this? Does this make sense?</em> The LinkedIn-to-Terminal attack works because people don't pause. Pausing is a skill. Practice it. <sup>[7][8]</sup></li>
+            <li><strong>Use AI as a thinking partner, not a replacement.</strong> Ask it to challenge your reasoning. Ask it to steelman the opposing view. Ask it to find the flaw in your argument. This is the difference between a crutch and a sparring partner.</li>
+        </ul>
+
+        <h2>The Confluence, and the Choice</h2>
+
+        <p>The irony of this moment is profound. We are building machines of extraordinary intelligence while systematically reducing the intelligence of the people using them. The AI gets smarter every six months. The human behind the keyboard may not be. <sup>[4][5]</sup></p>
+
+        <p>There is a version of this future that works out. It requires treating your mind the way you treat your body — something that requires maintenance, challenge, and deliberate resistance to atrophy. It requires education systems that grade students on <em>process</em>, not output. It requires workplaces that distinguish between AI-assisted productivity and AI-replaced judgment. And it requires individuals who are honest with themselves about which side of that line they're on.</p>
+
+        <p>The models will keep training. The question is whether you will too.</p>
+
+    </div>
+
+    <div class="references">
+        <h2>References</h2>
+        <ol>
+            <li>Cassie B. (2025, March 18). <em>Human intelligence in freefall: Study links cognitive decline to social media and AI.</em> NewTarget. Citing PISA data and National Endowment for the Arts (2022).</li>
+            <li>Kosmyna, N., et al. (2025). <em>Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task.</em> MIT Media Lab.</li>
+            <li>Grosse-Buening, I. (2025, February 26). <em>AI's cognitive implications: the decline of our thinking skills?</em> IE University Centre for Health and Well-Being. Citing Domínguez, U.L. and Gong &amp; Yang (2024) on the Google Effect.</li>
+            <li>Sternberg, R.J. (2026, January 5). <em>Does AI increase cognitive abilities, decrease them, or a little bit of each?</em> Frontiers in Education. <a href="https://www.frontiersin.org/journals/education/articles/10.3389/feduc.2026.1759062/full" target="_blank" rel="noopener">frontiersin.org</a></li>
+            <li>(2026). <em>The Cognitive Divergence: AI Context Windows, Human Attention Decline, and the Delegation Feedback Loop.</em> arXiv:2603.26707.</li>
+            <li>Lee, M., et al. (2025). <em>The Impact of Generative AI on Critical Thinking.</em> CHI '25. Microsoft Research &amp; Carnegie Mellon University. <a href="https://dl.acm.org/doi/abs/10.1145/3706598.3713778" target="_blank" rel="noopener">dl.acm.org</a></li>
+            <li>Red Canary. (2026, March). <em>Threat Detection Report: Malicious Copy and Paste / ClickFix.</em> Red Canary Intelligence.</li>
+            <li>Microsoft Threat Intelligence. (2025, August 21). <em>Think before you ClickFix.</em> Microsoft Security Blog. <a href="https://www.microsoft.com/en-us/security/blog/2025/08/21/think-before-you-clickfix-analyzing-the-clickfix-social-engineering-technique/" target="_blank" rel="noopener">microsoft.com</a></li>
+            <li>Whalebone. (2026, January 29). <em>AI Impact on Phishing in 2025 &amp; 2026.</em> Citing IBM X-Force and Okta data. <a href="https://www.whalebone.io/post/ai-impact-on-phishing-in-2025-2026-how-speed-became-the-attackers-greatest-weapon" target="_blank" rel="noopener">whalebone.io</a></li>
+            <li>CybelAngel. (2025). <em>The Rise of AI-Powered Phishing 2025.</em> <a href="https://cybelangel.com/blog/rise-ai-phishing/" target="_blank" rel="noopener">cybelangel.com</a></li>
+            <li>Hoxhunt. (2026). <em>Phishing Trends Report.</em> <a href="https://hoxhunt.com/guide/phishing-trends-report" target="_blank" rel="noopener">hoxhunt.com</a></li>
+            <li>Zetter, K. (2026). <em>AI Phishing Is No. 1 With a Bullet for Cyberattackers.</em> Dark Reading. <a href="https://www.darkreading.com/cyber-risk/ai-phishing-no-1-cyberattackers" target="_blank" rel="noopener">darkreading.com</a></li>
+            <li>Heiding, F., et al. (2024). <em>Evaluating Large Language Models' Capability to Launch Fully Automated Spear Phishing Campaigns.</em> arXiv:2412.00586.</li>
+            <li>StrongestLayer. (2026, February 13). <em>AI-Generated Phishing: The Top Enterprise Threat of 2026.</em> <a href="https://www.strongestlayer.com/blog/ai-generated-phishing-enterprise-threat" target="_blank" rel="noopener">strongestlayer.com</a></li>
+            <li>Brandolini, A. (2013). <em>Bullshit Asymmetry Principle.</em></li>
+            <li>Vectara. (2025–2026). <em>Hughes Hallucination Evaluation Model (HHEM) Leaderboard.</em> <a href="https://github.com/vectara/hallucination-leaderboard" target="_blank" rel="noopener">github.com/vectara</a></li>
+            <li>AllAboutAI. (2025–2026). <em>AI Hallucination Report.</em> Citing Stanford (2024) and 2025 judicial ruling data. <a href="https://www.allaboutai.com/resources/ai-statistics/ai-hallucinations/" target="_blank" rel="noopener">allaboutai.com</a></li>
+            <li>Suprmind. (2025, January). <em>AI Hallucination Rates &amp; Benchmarks.</em> Citing MIT research. <a href="https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/" target="_blank" rel="noopener">suprmind.ai</a></li>
+        </ol>
+    </div>
+
+    <div class="footer">
+        <p>Personal project journal — Not indexed by search engines</p>
+    </div>
+
+</div>
+
+</body>
+</html>
