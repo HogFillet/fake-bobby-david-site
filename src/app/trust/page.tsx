@@ -214,27 +214,46 @@ function TimelineChart({ cves }: { cves: CVEWithDebt[] }) {
     yearMap[y][c.severity as keyof typeof yearMap[string]]++
   })
   const years = Object.keys(yearMap).sort()
-  const maxDebt = Math.max(...years.map((y) => yearMap[y].debt), 1)
+  const maxCount = Math.max(...years.map((y) => yearMap[y].total), 1)
+  const scaleMax = Math.ceil(maxCount / 10) * 10
   const order = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'NONE']
+  const chartHeight = 180
   return (
     <div style={{ marginTop: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: 180, gap: 4, padding: '0 4px' }}>
-        {years.map((y) => {
-          const pct = (yearMap[y].debt / maxDebt) * 100
-          return (
-            <div key={y} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, maxWidth: 60 }}>
-              <span style={{ fontSize: 10, color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace" }}>{yearMap[y].total}</span>
-              <div style={{ width: '100%', height: `${Math.max(pct, 2)}%`, borderRadius: '4px 4px 0 0', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse', transition: 'height 0.6s ease' }}>
-                {order.map((s) =>
-                  yearMap[y][s as keyof typeof yearMap[string]] ? (
-                    <div key={s} style={{ width: '100%', flex: yearMap[y][s as keyof typeof yearMap[string]] as number, background: SEVERITY_COLORS[s], minHeight: 2 }} />
-                  ) : null
-                )}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {/* Y-axis scale */}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end', height: chartHeight, paddingBottom: 20, flexShrink: 0 }}>
+          {[scaleMax, Math.round(scaleMax / 2), 0].map((v) => (
+            <span key={v} style={{ fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{v}</span>
+          ))}
+        </div>
+        {/* Bars */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: chartHeight - 20, gap: 4, borderLeft: '1px solid rgba(148,163,184,0.15)', borderBottom: '1px solid rgba(148,163,184,0.15)', padding: '0 4px' }}>
+            {years.map((y) => {
+              const pct = (yearMap[y].total / scaleMax) * 100
+              return (
+                <div key={y} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, maxWidth: 60, height: '100%', justifyContent: 'flex-end' }}>
+                  <div style={{ width: '100%', height: `${Math.max(pct, 1)}%`, borderRadius: '4px 4px 0 0', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse', transition: 'height 0.6s ease' }}>
+                    {order.map((s) =>
+                      yearMap[y][s as keyof typeof yearMap[string]] ? (
+                        <div key={s} style={{ width: '100%', flex: yearMap[y][s as keyof typeof yearMap[string]] as number, background: SEVERITY_COLORS[s], minHeight: 2 }} />
+                      ) : null
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {/* X-axis labels */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, padding: '4px 4px 0' }}>
+            {years.map((y) => (
+              <div key={y} style={{ flex: 1, maxWidth: 60, textAlign: 'center' }}>
+                <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{y}</span>
               </div>
-              <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{y}</span>
-            </div>
-          )
-        })}
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
