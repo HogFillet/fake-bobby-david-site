@@ -392,22 +392,7 @@ export default function TrustDebtApp() {
         throw new Error(errBody.error || `Request failed with status ${response.status}`)
       }
 
-      const data = await response.json()
-
-      const textParts = (data.content || []).filter((block: { type: string }) => block.type === 'text').map((block: { text: string }) => block.text)
-      const fullText = textParts.join('\n').trim()
-
-      if (!fullText) {
-        const blockTypes = (data.content || []).map((b: { type: string }) => b.type).join(', ')
-        throw new Error(`No results returned (blocks: ${blockTypes}). Try again.`)
-      }
-
-      const cleaned = fullText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
-      const jsonMatch = cleaned.match(/\[[\s\S]*\]/)
-      if (!jsonMatch) throw new Error('Could not parse CVE data. Try a different company name.')
-
-      let rawCves: CVE[]
-      try { rawCves = JSON.parse(jsonMatch[0]) } catch { throw new Error('Failed to parse response. Please try again.') }
+      const rawCves: CVE[] = await response.json()
 
       if (!Array.isArray(rawCves) || rawCves.length === 0) throw new Error(`No CVEs found for "${searchQuery.trim()}". Try a different name.`)
 
