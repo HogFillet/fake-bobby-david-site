@@ -381,7 +381,7 @@ export default function TrustDebtApp() {
     const startYear = now.getFullYear() - years
 
     try {
-      const response = await fetch('https://cve-search.YOURNAME.workers.dev', {
+      const response = await fetch('https://cve-search.hogfillet.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery.trim(), startYear, currentYear: now.getFullYear() }),
