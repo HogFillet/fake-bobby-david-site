@@ -266,7 +266,7 @@ export default function SplashOverlay() {
         <a href="#characters" onClick={dismiss}>FAKES</a>
         <a href="/blog.html">BLOG</a>
         <a href="/order.html">SWAG</a>
-        <a href="/trust">TRUST</a>
+        <a href="/trust.html">TRUST</a>
       </nav>
     </div>
   )
