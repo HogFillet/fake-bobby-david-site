@@ -353,6 +353,21 @@ function HistoryCard({ entry, index, onClick }: { entry: HistoryEntry; index: nu
   )
 }
 
+const TRUST_DEBT_API = 'https://trust-debt-api.hogfillet.workers.dev'
+const CVE_SEARCH_API = 'https://cve-search.hogfillet.workers.dev'
+
+interface LeaderboardEntry {
+  slug: string
+  name: string
+  grade: string
+  trajectory: number
+  cveCount: number
+}
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')
+}
+
 export default function TrustDebtApp() {
   const [query, setQuery] = useState('')
   const [cves, setCves] = useState<CVEWithDebt[]>([])
@@ -363,6 +378,8 @@ export default function TrustDebtApp() {
   const [searched, setSearched] = useState(false)
   const [companyName, setCompanyName] = useState('')
   const [sortBy, setSortBy] = useState('trustDebt')
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [dataSource, setDataSource] = useState<'cached' | 'live' | null>(null)
   const [searchHistory, setSearchHistory] = useState<HistoryEntry[]>([])
   const [viewMode, setViewMode] = useState('trajectory')
 
@@ -371,6 +388,13 @@ export default function TrustDebtApp() {
       const saved = localStorage.getItem('trust-debt-history')
       if (saved) setSearchHistory(JSON.parse(saved))
     } catch { /* no history yet */ }
+  }, [])
+
+  useEffect(() => {
+    fetch(`${TRUST_DEBT_API}/api/leaderboard`)
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setLeaderboard(data) })
+      .catch(() => {})
   }, [])
 
   const saveToHistory = useCallback((company: string, years: number, cveList: CVEWithDebt[], debt: number, grade: string) => {
@@ -400,18 +424,29 @@ export default function TrustDebtApp() {
     const startYear = now.getFullYear() - years
 
     try {
-      const response = await fetch('https://cve-search.hogfillet.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery.trim(), startYear, currentYear: now.getFullYear() }),
-      })
+      // Try cached trust-debt-api first
+      const slug = toSlug(searchQuery.trim())
+      const cachedRes = await fetch(`${TRUST_DEBT_API}/api/company/${slug}`)
+      let rawCves: CVE[]
 
-      if (!response.ok) {
-        const errBody = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errBody.error || `Request failed with status ${response.status}`)
+      if (cachedRes.ok) {
+        const cached = await cachedRes.json()
+        rawCves = (cached.cves || []) as CVE[]
+        setDataSource('cached')
+      } else {
+        // Fall back to live NVD query
+        const response = await fetch(CVE_SEARCH_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: searchQuery.trim(), startYear, currentYear: now.getFullYear() }),
+        })
+        if (!response.ok) {
+          const errBody = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errBody.error || `Request failed with status ${response.status}`)
+        }
+        rawCves = await response.json()
+        setDataSource('live')
       }
-
-      const rawCves: CVE[] = await response.json()
 
       if (!Array.isArray(rawCves) || rawCves.length === 0) throw new Error(`No CVEs found for "${searchQuery.trim()}". Try a different name.`)
 
@@ -532,7 +567,7 @@ export default function TrustDebtApp() {
           {loading && (
             <div style={{ textAlign: 'center', padding: 60 }}>
               <div style={{ width: 48, height: 48, border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-              <p style={{ color: '#64748b', fontSize: 14 }}>Searching NVD for {companyName} vulnerabilities... this may take a moment.</p>
+              <p style={{ color: '#64748b', fontSize: 14 }}>{dataSource === 'cached' ? `Loading cached data for ${companyName}...` : `Searching NVD for ${companyName} vulnerabilities... this may take a moment.`}</p>
             </div>
           )}
 
@@ -550,11 +585,18 @@ export default function TrustDebtApp() {
           {/* Results */}
           {searched && !loading && !error && (
             <div style={{ animation: 'fadeSlideIn 0.4s ease' }}>
-              {searchHistory.length > 0 && (
-                <button onClick={() => { setSearched(false); setCves([]); setError('') }} className="sort-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', padding: '4px 0', marginBottom: 16, fontFamily: "'JetBrains Mono', monospace", transition: 'all 0.15s' }}>
-                  ← Recent searches
-                </button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                {searchHistory.length > 0 && (
+                  <button onClick={() => { setSearched(false); setCves([]); setError('') }} className="sort-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', color: '#64748b', fontSize: 12, cursor: 'pointer', padding: '4px 0', fontFamily: "'JetBrains Mono', monospace", transition: 'all 0.15s' }}>
+                    ← Recent searches
+                  </button>
+                )}
+                {dataSource && (
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: "'JetBrains Mono', monospace", padding: '2px 8px', borderRadius: 4, background: dataSource === 'cached' ? 'rgba(0,200,83,0.1)' : 'rgba(99,102,241,0.1)', color: dataSource === 'cached' ? '#00c853' : '#818cf8', border: `1px solid ${dataSource === 'cached' ? '#00c85330' : '#6366f130'}` }}>
+                    {dataSource === 'cached' ? '⚡ cached' : '🔍 live query'}
+                  </span>
+                )}
+              </div>
 
               {/* View Mode Tabs */}
               <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
@@ -765,11 +807,37 @@ export default function TrustDebtApp() {
                   </div>
                   <p style={{ color: '#475569', fontSize: 12, marginTop: 16, textAlign: 'center', fontFamily: "'JetBrains Mono', monospace" }}>Click any card to re-run the search with fresh data</p>
                 </div>
-              ) : (
+              ) : null}
+              {leaderboard.length > 0 && (
+                <div style={{ marginTop: searchHistory.length > 0 ? 32 : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#cbd5e1' }}>Tracked Companies</span>
+                    <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", background: 'rgba(99,102,241,0.08)', padding: '2px 8px', borderRadius: 4 }}>{leaderboard.length}</span>
+                    <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginLeft: 'auto' }}>updated nightly</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+                    {leaderboard.map((c) => {
+                      const gc = c.grade === 'A+' || c.grade === 'A' ? '#00c853' : c.grade === 'B' ? '#64748b' : c.grade === 'C' ? '#ffc400' : c.grade === 'D' ? '#ff6d00' : '#ff1744'
+                      return (
+                        <button key={c.slug} onClick={() => { setQuery(c.name); fetchCVEs(c.name, yearsBack) }}
+                          style={{ background: 'rgba(15,23,42,0.6)', border: `1px solid ${gc}30`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+                          onMouseEnter={e => (e.currentTarget.style.borderColor = gc + '80')}
+                          onMouseLeave={e => (e.currentTarget.style.borderColor = gc + '30')}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>{c.name}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: gc, flexShrink: 0, marginLeft: 6 }}>{c.grade}</span>
+                          </div>
+                          <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              {leaderboard.length === 0 && searchHistory.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ fontSize: 64, marginBottom: 16, opacity: 0.6 }}>🔍</div>
                   <p style={{ color: '#64748b', fontSize: 16, margin: 0 }}>Search a company to see their Trust Debt score</p>
-                  <p style={{ color: '#475569', fontSize: 13, marginTop: 8 }}>Powered by NIST NVD data via AI-powered search</p>
+                  <p style={{ color: '#475569', fontSize: 13, marginTop: 8 }}>Powered by NIST NVD data</p>
                 </div>
               )}
             </div>
