@@ -469,6 +469,15 @@ export default function TrustDebtApp() {
       const withDebt = calculateTrustDebt(parsed)
       setCves(withDebt)
       setTotalResults(parsed.length)
+
+      // Auto-track companies discovered via live query (fire-and-forget, only if results exist)
+      if (parsed.length > 0 && !cachedRes.ok) {
+        fetch(`${TRUST_DEBT_API}/api/companies`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: searchQuery.trim(), keywords: [searchQuery.trim()], yearsBack: 3 }),
+        }).catch(() => {})
+      }
       const t = withDebt.length > 0 ? calculateTrajectory(withDebt) : null
       const trajScore = t ? t.trajectory : 0
       const g = getGrade(trajScore, withDebt.length)
@@ -604,7 +613,12 @@ export default function TrustDebtApp() {
                   </span>
                 )}
               </div>
-
+              {dataSource === 'cached' && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'rgba(0,200,83,0.05)', border: '1px solid rgba(0,200,83,0.12)', marginBottom: 16, fontSize: 12, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.6 }}>
+                  <span style={{ color: '#00c853', flexShrink: 0, marginTop: 1 }}>ⓘ</span>
+                  <span><span style={{ color: '#94a3b8' }}>Showing pre-cached data (last 12 months, updated nightly).</span> The year range selector only applies to live queries — untracked companies are queried directly from NVD in real time.</span>
+                </div>
+              )}
               {/* View Mode Tabs */}
               <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
                 {[
