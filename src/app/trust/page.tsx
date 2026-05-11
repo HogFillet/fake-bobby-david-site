@@ -101,9 +101,11 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
   let delta = 1
   if (tdPrevious > 0) {
     delta = Math.min(2.0, Math.max(0.5, tdCurrent / tdPrevious))
-  } else if (tdCurrent > 0) {
+  } else if (tdCurrent > 0 && previousWindow.length > 0) {
+    // Previous CVEs exist but all resolved — genuinely worsening
     delta = 2.0
   }
+  // previousWindow.length === 0 means insufficient historical data — keep delta = 1.0 (neutral)
 
   const critHighCurrent = currentWindow.filter(
     (c) => c.severity === 'CRITICAL' || c.severity === 'HIGH'
@@ -292,16 +294,21 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
 
 function GradeBadge({ grade, size = 48 }: { grade: string; size?: number }) {
   const gradeColors: Record<string, string> = { 'A+': '#00c853', A: '#00c853', B: '#64dd17', C: '#ffc400', D: '#ff6d00', F: '#ff1744' }
+  const color = gradeColors[grade] || '#78909c'
   return (
     <div style={{
       width: size, height: size, borderRadius: 12,
-      background: `${gradeColors[grade] || '#78909c'}18`,
-      border: `2px solid ${gradeColors[grade] || '#78909c'}`,
+      background: `${color}18`,
+      border: `2px solid ${color}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontSize: size * 0.45, fontWeight: 800, color: gradeColors[grade] || '#78909c',
+      overflow: 'hidden',
     }}>
-      {grade}
+      {grade === 'F' ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src="/images/fake-bobby-logo.png" alt="F" style={{ width: '85%', height: '85%', objectFit: 'contain', filter: 'drop-shadow(0 0 4px #ff174480)' }} />
+      ) : (
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: size * 0.45, fontWeight: 800, color }}>{grade}</span>
+      )}
     </div>
   )
 }
