@@ -32,6 +32,7 @@ interface CVE {
   severity: string
   score: number
   description: string
+  kev?: boolean
   daysOpen?: number
   trustDebt?: number
 }
@@ -63,6 +64,8 @@ interface Trajectory {
   tdPrevious: number
   delta: number
   recurrence: number
+  kevCount: number
+  kFactor: number
   trajectory: number
   currentWindow: CVEWithDebt[]
   previousWindow: CVEWithDebt[]
@@ -111,7 +114,9 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
     (c) => c.severity === 'CRITICAL' || c.severity === 'HIGH'
   ).length
   const recurrence = 1 + critHighCurrent * 0.15
-  const trajectory = tdCurrent * delta * recurrence
+  const kevCount = currentWindow.filter((c) => c.kev).length
+  const kFactor = 1 + 0.30 * kevCount
+  const trajectory = tdCurrent * delta * recurrence * kFactor
 
   const quarters: Quarter[] = []
   for (let q = 7; q >= 0; q--) {
@@ -126,7 +131,7 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
     quarters.push({ label: `Q${8 - q}`, debt: qDebt, count: qCves.length, critHigh: qCritHigh })
   }
 
-  return { tdCurrent, tdPrevious, delta, recurrence, trajectory, currentWindow, previousWindow, critHighCurrent, quarters }
+  return { tdCurrent, tdPrevious, delta, recurrence, kevCount, kFactor, trajectory, currentWindow, previousWindow, critHighCurrent, quarters }
 }
 
 function TrendIndicator({ delta }: { delta: number }) {
@@ -273,7 +278,10 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#e2e8f0', fontWeight: 600 }}>{cve.id}</span>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+              {cve.kev && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,23,68,0.35)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>KEV</span>
+              )}
               <span style={{ fontSize: 11, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{cve.daysOpen}d open</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: SEVERITY_COLORS[cve.severity], fontFamily: "'JetBrains Mono', monospace" }}>CVSS {cve.score}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#f8fafc', background: 'rgba(99,102,241,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -673,28 +681,55 @@ export default function TrustDebtApp() {
                       <GradeBadge grade={grade} size={56} />
                       <div style={{ fontSize: 52, fontWeight: 800, color: '#e2e8f0' }}><AnimatedNumber value={Math.round(trajectoryScore)} /></div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", marginTop: 12 }}>TT = TD<sub>current</sub> × Δ × R</div>
-                    <div style={{ fontSize: 12, color: '#475569', marginTop: 6 }}>{cves.length} CVEs analyzed</div>
+                    <div style={{ fontSize: 12, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", marginTop: 12 }}>TT = TD × Δ × R × K</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                      <span style={{ fontSize: 12, color: '#475569' }}>{cves.length} CVEs analyzed</span>
+                      {traj && traj.kevCount > 0 && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.1)', padding: '2px 10px', borderRadius: 20, border: '1px solid rgba(255,23,68,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {traj.kevCount} KEV {traj.kevCount === 1 ? 'hit' : 'hits'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+
+                  {/* Ingredient list */}
+                  <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, marginBottom: 24, overflow: 'hidden' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 1fr auto 52px', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
+                      {['SYM', 'FACTOR', 'SOURCE', 'WEIGHT', ''].map((h, i) => (
+                        <span key={i} style={{ fontSize: 9, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.2, fontFamily: "'JetBrains Mono', monospace", textAlign: i === 3 ? 'right' : 'left' }}>{h}</span>
+                      ))}
+                    </div>
+                    {traj ? [
+                      { sym: 'TD', name: 'Base Debt', source: 'NVD CVEs', weight: Math.round(traj.tdCurrent).toLocaleString(), color: '#e2e8f0', status: null, onClick: () => setViewMode('window') },
+                      { sym: 'Δ', name: 'Trend', source: '12-month window', weight: `${traj.delta.toFixed(2)}×`, color: traj.delta > 1.05 ? '#ff6d00' : traj.delta < 0.95 ? '#00c853' : '#e2e8f0', status: null, onClick: () => setViewMode('window') },
+                      { sym: 'R', name: 'Recurrence', source: `${traj.critHighCurrent} crit/high`, weight: `${traj.recurrence.toFixed(2)}×`, color: traj.recurrence > 1.5 ? '#ff6d00' : '#e2e8f0', status: null, onClick: () => setViewMode('recurrence') },
+                      { sym: 'K', name: 'KEV Exploited', source: `${traj.kevCount} CISA KEV`, weight: `${traj.kFactor.toFixed(2)}×`, color: traj.kevCount > 0 ? '#ff1744' : '#e2e8f0', status: 'NEW', onClick: null },
+                    ].map((row) => (
+                      <div key={row.sym} onClick={row.onClick || undefined} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 1fr auto 52px', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.05)', cursor: row.onClick ? 'pointer' : 'default', transition: 'background 0.15s' }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 800, color: row.color }}>{row.sym}</span>
+                        <span style={{ fontSize: 12, color: '#94a3b8' }}>{row.name}</span>
+                        <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{row.source}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: row.color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right', paddingRight: 16 }}>{row.weight}</span>
+                        {row.status === 'NEW'
+                          ? <span style={{ fontSize: 9, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,23,68,0.3)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>NEW</span>
+                          : <span />}
+                      </div>
+                    )) : null}
+                    <div style={{ height: 1, background: 'rgba(148,163,184,0.1)', margin: '4px 0' }} />
                     {[
-                      { label: 'Base Debt (TD)', value: traj ? Math.round(traj.tdCurrent).toLocaleString() : '—', sub: 'current 12mo window', onClick: () => setViewMode('window') },
-                    ].map((card) => (
-                      <div key={card.label} style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={card.onClick}>
-                        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>{card.label}</div>
-                        <div style={{ fontSize: 24, fontWeight: 800, color: '#e2e8f0' }}>{card.value}</div>
-                        <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>{card.sub}</div>
+                      { sym: 'D', name: 'Disclosure Lag', source: 'NVD' },
+                      { sym: 'E', name: 'EOL Exposure', source: 'Vendor lifecycle' },
+                      { sym: 'M', name: 'SEC 8-K', source: 'SEC EDGAR' },
+                      { sym: 'P', name: 'EPSS Score', source: 'FIRST.org' },
+                    ].map((row) => (
+                      <div key={row.sym} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 1fr auto 52px', alignItems: 'center', padding: '8px 16px', opacity: 0.3 }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 800, color: '#64748b' }}>{row.sym}</span>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>{row.name}</span>
+                        <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{row.source}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right', paddingRight: 16 }}>1.00×</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#64748b', background: 'rgba(100,116,139,0.1)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(100,116,139,0.2)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>TBD</span>
                       </div>
                     ))}
-                    <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={() => setViewMode('window')}>
-                      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>Trend (Δ)</div>
-                      {traj ? <TrendIndicator delta={traj.delta} /> : <span style={{ fontSize: 24, color: '#64748b' }}>—</span>}
-                    </div>
-                    <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={() => setViewMode('recurrence')}>
-                      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>Recurrence (R)</div>
-                      <div style={{ fontSize: 24, fontWeight: 800, color: traj && traj.recurrence > 1.5 ? '#ff6d00' : '#e2e8f0' }}>{traj ? `${traj.recurrence.toFixed(2)}×` : '—'}</div>
-                      <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>{traj ? `${traj.critHighCurrent} crit/high` : ''}</div>
-                    </div>
                   </div>
                 </div>
               )}
