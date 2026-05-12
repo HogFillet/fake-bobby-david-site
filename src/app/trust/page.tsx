@@ -387,6 +387,7 @@ export default function TrustDebtApp() {
   const [sortBy, setSortBy] = useState('trustDebt')
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [dataSource, setDataSource] = useState<'cached' | 'live' | null>(null)
+  const [fakeCharacter, setFakeCharacter] = useState<{ img: string; name: string; caption: string } | null>(null)
   const [searchHistory, setSearchHistory] = useState<HistoryEntry[]>([])
   const [viewMode, setViewMode] = useState('trajectory')
 
@@ -424,6 +425,7 @@ export default function TrustDebtApp() {
     setLoading(true)
     setError('')
     setCves([])
+    setFakeCharacter(null)
     setSearched(true)
     setCompanyName(searchQuery.trim())
 
@@ -455,7 +457,16 @@ export default function TrustDebtApp() {
         setDataSource('live')
       }
 
-      if (!Array.isArray(rawCves) || rawCves.length === 0) throw new Error(`No CVEs found for "${searchQuery.trim()}". Try a different name.`)
+      if (!Array.isArray(rawCves) || rawCves.length === 0) {
+        const fakes = [
+          { img: '/images/fake-bobby.png', name: 'Fake Bobby', caption: `"${searchQuery.trim()}"? Never heard of 'em. Suspiciously clean record.` },
+          { img: '/images/fake-david.png', name: 'Fake David', caption: `No vulnerabilities found. Either they're perfect... or they're not real.` },
+          { img: '/images/fake-tommy.png', name: 'Fake Tommy', caption: `Our records show nothing. That's either impressive or suspicious.` },
+        ]
+        setFakeCharacter(fakes[Math.floor(Math.random() * fakes.length)])
+        setLoading(false)
+        return
+      }
 
       const parsed: CVE[] = rawCves
         .filter((c) => c.id && c.severity)
@@ -584,6 +595,18 @@ export default function TrustDebtApp() {
             <div style={{ textAlign: 'center', padding: 60 }}>
               <div style={{ width: 48, height: 48, border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
               <p style={{ color: '#64748b', fontSize: 14 }}>{dataSource === 'cached' ? `Loading cached data for ${companyName}...` : `Searching NVD for ${companyName} vulnerabilities... this may take a moment.`}</p>
+            </div>
+          )}
+
+          {/* No Results — Fake Character */}
+          {fakeCharacter && !loading && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', animation: 'fadeSlideIn 0.4s ease' }}>
+              <img src={fakeCharacter.img} alt={fakeCharacter.name} style={{ width: 180, height: 180, objectFit: 'contain', marginBottom: 20, filter: 'drop-shadow(0 8px 24px rgba(99,102,241,0.25))' }} />
+              <p style={{ color: '#94a3b8', fontSize: 15, margin: '0 0 6px', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600 }}>{fakeCharacter.caption}</p>
+              <p style={{ color: '#475569', fontSize: 12, margin: '0 0 24px', fontFamily: "'JetBrains Mono', monospace" }}>No CVEs found in NVD for &quot;{companyName}&quot;</p>
+              <button onClick={() => { setFakeCharacter(null); setSearched(false) }} style={{ padding: '8px 20px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.1)', color: '#818cf8', fontSize: 13, cursor: 'pointer', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600 }}>
+                Try another company
+              </button>
             </div>
           )}
 
