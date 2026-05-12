@@ -438,12 +438,7 @@ export default function TrustDebtApp() {
       const cachedRes = await fetch(`${TRUST_DEBT_API}/api/company/${slug}`)
       let rawCves: CVE[]
 
-      if (cachedRes.ok) {
-        const cached = await cachedRes.json()
-        rawCves = (cached.cves || []) as CVE[]
-        setDataSource('cached')
-      } else {
-        // Fall back to live NVD query
+      const useLive = async () => {
         const response = await fetch(CVE_SEARCH_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -453,8 +448,22 @@ export default function TrustDebtApp() {
           const errBody = await response.json().catch(() => ({ error: 'Unknown error' }))
           throw new Error(errBody.error || `Request failed with status ${response.status}`)
         }
-        rawCves = await response.json()
         setDataSource('live')
+        return await response.json() as CVE[]
+      }
+
+      if (cachedRes.ok) {
+        const cached = await cachedRes.json()
+        const cachedCves = (cached.cves || []) as CVE[]
+        if (cachedCves.length > 0) {
+          rawCves = cachedCves
+          setDataSource('cached')
+        } else {
+          // Tracked but not yet synced — fall back to live
+          rawCves = await useLive()
+        }
+      } else {
+        rawCves = await useLive()
       }
 
       if (!Array.isArray(rawCves) || rawCves.length === 0) {
