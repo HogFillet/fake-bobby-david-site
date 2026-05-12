@@ -492,6 +492,7 @@ export default function TrustDebtApp() {
           severity: (c.severity || 'NONE').toUpperCase(),
           score: typeof c.score === 'number' ? c.score : 0,
           description: c.description || 'No description available',
+          kev: c.kev === true,
         }))
 
       const withDebt = calculateTrustDebt(parsed)
