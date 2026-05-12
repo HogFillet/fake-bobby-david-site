@@ -34,6 +34,7 @@ interface CVE {
   description: string
   kev?: boolean
   epss?: number
+  epssPercentile?: number
   daysOpen?: number
   trustDebt?: number
 }
@@ -120,7 +121,11 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
   const kevCount = currentWindow.filter((c) => c.kev).length
   const kFactor = 1 + 0.30 * kevCount
   const epssHighCount = currentWindow.filter((c) => (c.epss ?? 0) > 0.10).length
-  const epssSum = currentWindow.reduce((s, c) => s + ((c.epss ?? 0) > 0.10 ? (c.epss ?? 0) : 0), 0)
+  const epssSum = currentWindow.reduce((s, c) => {
+    const score = c.epss ?? 0
+    const pct = c.epssPercentile ?? score  // fall back to score if percentile missing
+    return s + (score > 0.10 ? score * pct : 0)
+  }, 0)
   const pFactor = Math.min(3.0, 1 + epssSum)
   const trajectory = tdCurrent * delta * recurrence * kFactor * pFactor
 
@@ -288,9 +293,18 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
               {cve.kev && (
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,23,68,0.35)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>KEV</span>
               )}
-              {(cve.epss ?? 0) > 0.01 && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: (cve.epss ?? 0) >= 0.5 ? '#ff6d00' : (cve.epss ?? 0) >= 0.1 ? '#ffc400' : '#64748b', background: (cve.epss ?? 0) >= 0.5 ? 'rgba(255,109,0,0.1)' : (cve.epss ?? 0) >= 0.1 ? 'rgba(255,196,0,0.1)' : 'rgba(100,116,139,0.1)', padding: '2px 6px', borderRadius: 4, border: `1px solid ${(cve.epss ?? 0) >= 0.5 ? 'rgba(255,109,0,0.35)' : (cve.epss ?? 0) >= 0.1 ? 'rgba(255,196,0,0.35)' : 'rgba(100,116,139,0.2)'}`, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>EPSS {((cve.epss ?? 0) * 100).toFixed(1)}%</span>
-              )}
+              {(cve.epss ?? 0) > 0.01 && (() => {
+                const e = cve.epss ?? 0
+                const p = cve.epssPercentile ?? 0
+                const color = e >= 0.5 ? '#ff6d00' : e >= 0.1 ? '#ffc400' : '#64748b'
+                const bg = e >= 0.5 ? 'rgba(255,109,0,0.1)' : e >= 0.1 ? 'rgba(255,196,0,0.1)' : 'rgba(100,116,139,0.1)'
+                const border = e >= 0.5 ? 'rgba(255,109,0,0.35)' : e >= 0.1 ? 'rgba(255,196,0,0.35)' : 'rgba(100,116,139,0.2)'
+                return (
+                  <span title={`EPSS: ${(e*100).toFixed(2)}% probability · ${(p*100).toFixed(0)}th percentile`} style={{ fontSize: 10, fontWeight: 700, color, background: bg, padding: '2px 6px', borderRadius: 4, border: `1px solid ${border}`, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, cursor: 'default' }}>
+                    EPSS {(e * 100).toFixed(1)}%{p > 0 ? ` · p${(p * 100).toFixed(0)}` : ''}
+                  </span>
+                )
+              })()}
               <span style={{ fontSize: 11, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{cve.daysOpen}d open</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: SEVERITY_COLORS[cve.severity], fontFamily: "'JetBrains Mono', monospace" }}>CVSS {cve.score}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#f8fafc', background: 'rgba(99,102,241,0.2)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -503,6 +517,7 @@ export default function TrustDebtApp() {
           description: c.description || 'No description available',
           kev: c.kev === true,
           epss: typeof c.epss === 'number' ? c.epss : undefined,
+          epssPercentile: typeof c.epssPercentile === 'number' ? c.epssPercentile : undefined,
         }))
 
       const withDebt = calculateTrustDebt(parsed)
@@ -715,7 +730,7 @@ export default function TrustDebtApp() {
                       { sym: 'Δ', name: 'Trend', source: '12-month window', weight: `${traj.delta.toFixed(2)}×`, color: traj.delta > 1.05 ? '#ff6d00' : traj.delta < 0.95 ? '#00c853' : '#e2e8f0', status: null, onClick: () => setViewMode('window') },
                       { sym: 'R', name: 'Recurrence', source: `${traj.critHighCurrent} crit/high`, weight: `${traj.recurrence.toFixed(2)}×`, color: traj.recurrence > 1.5 ? '#ff6d00' : '#e2e8f0', status: null, onClick: () => setViewMode('recurrence') },
                       { sym: 'K', name: 'KEV Exploited', source: `${traj.kevCount} CISA KEV`, weight: `${traj.kFactor.toFixed(2)}×`, color: traj.kevCount > 0 ? '#ff1744' : '#e2e8f0', status: 'NEW', onClick: null },
-                      { sym: 'P', name: 'EPSS Score', source: `${traj.epssHighCount} high-risk (>10%)`, weight: `${traj.pFactor.toFixed(2)}×`, color: traj.pFactor > 1.5 ? '#ff6d00' : traj.pFactor > 1.1 ? '#ffc400' : '#e2e8f0', status: 'NEW', onClick: null },
+                      { sym: 'P', name: 'EPSS × Percentile', source: `${traj.epssHighCount} high-risk (>10%)`, weight: `${traj.pFactor.toFixed(2)}×`, color: traj.pFactor > 1.5 ? '#ff6d00' : traj.pFactor > 1.1 ? '#ffc400' : '#e2e8f0', status: 'NEW', onClick: null },
                     ].map((row) => (
                       <div key={row.sym} onClick={row.onClick || undefined} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 1fr auto 52px', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.05)', cursor: row.onClick ? 'pointer' : 'default', transition: 'background 0.15s' }}>
                         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 800, color: row.color }}>{row.sym}</span>
