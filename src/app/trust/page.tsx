@@ -697,6 +697,9 @@ export default function TrustDebtApp() {
             <p style={{ color: '#64748b', fontSize: 16, marginTop: 12, maxWidth: 620, margin: '12px auto 0', lineHeight: 1.6 }}>
               Every company accrues tech debt. Every company also accrues Trust Debt™ — but rarely is it taken into account when choosing a CSP or SaaS provider. Search any company to calculate theirs.
             </p>
+            <p style={{ color: '#475569', fontSize: 13, marginTop: 10, maxWidth: 560, margin: '10px auto 0', lineHeight: 1.6, fontStyle: 'italic', fontFamily: "'JetBrains Mono', monospace" }}>
+              Trust Debt measures how fast you&apos;re accumulating exploitable risk compared to how fast you&apos;re paying it down.
+            </p>
           </div>
 
           {/* Search */}
@@ -894,6 +897,20 @@ export default function TrustDebtApp() {
                         <div style={{ marginTop: 12 }}>
                           <SeverityBar counts={{ CRITICAL: traj.currentWindow.filter(c => c.severity === 'CRITICAL').length, HIGH: traj.currentWindow.filter(c => c.severity === 'HIGH').length, MEDIUM: traj.currentWindow.filter(c => c.severity === 'MEDIUM').length, LOW: traj.currentWindow.filter(c => c.severity === 'LOW').length, NONE: traj.currentWindow.filter(c => c.severity === 'NONE').length }} total={traj.currentWindow.length} />
                         </div>
+                        {(traj.kevCount > 0 || traj.epssHighCount > 0) && (
+                          <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                            {traj.kevCount > 0 && (
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.1)', padding: '2px 8px', borderRadius: 10, border: '1px solid rgba(255,23,68,0.25)', fontFamily: "'JetBrains Mono', monospace" }}>
+                                {traj.kevCount} KEV
+                              </span>
+                            )}
+                            {traj.epssHighCount > 0 && (
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#ff6d00', background: 'rgba(255,109,0,0.1)', padding: '2px 8px', borderRadius: 10, border: '1px solid rgba(255,109,0,0.25)', fontFamily: "'JetBrains Mono', monospace" }}>
+                                {traj.epssHighCount} high EPSS
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -924,7 +941,7 @@ export default function TrustDebtApp() {
                       {traj.recurrence >= 2.5 ? 'Systemic failure pattern detected' : traj.recurrence >= 1.5 ? 'Repeated high-severity vulnerabilities' : traj.recurrence > 1.0 ? 'Some recurring issues' : 'Minimal recurrence'}
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
                     {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((sev) => {
                       const count = traj.currentWindow.filter(c => c.severity === sev).length
                       const contributes = sev === 'CRITICAL' || sev === 'HIGH'
@@ -938,18 +955,57 @@ export default function TrustDebtApp() {
                       )
                     })}
                   </div>
+
+                  {/* KEV + EPSS exploitation context */}
+                  {(traj.kevCount > 0 || traj.epssHighCount > 0) && (() => {
+                    const kevInWindow = traj.currentWindow.filter(c => c.kev)
+                    const epssHighInWindow = traj.currentWindow.filter(c => (c.epss ?? 0) > 0.10)
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: traj.kevCount > 0 && traj.epssHighCount > 0 ? '1fr 1fr' : '1fr', gap: 12, marginBottom: 12 }}>
+                        {traj.kevCount > 0 && (
+                          <div style={{ background: 'rgba(255,23,68,0.04)', border: '1px solid rgba(255,23,68,0.2)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                            <div style={{ fontSize: 10, color: '#ff1744', fontWeight: 700, textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace", marginBottom: 6, letterSpacing: 1 }}>CISA KEV</div>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: '#ff1744' }}>{traj.kevCount}</div>
+                            <div style={{ fontSize: 10, color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>actively exploited in wild</div>
+                            <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+                              {kevInWindow.slice(0, 3).map(c => (
+                                <span key={c.id} style={{ fontSize: 9, color: '#ff5252', background: 'rgba(255,23,68,0.08)', padding: '1px 6px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace" }}>{c.id}</span>
+                              ))}
+                              {kevInWindow.length > 3 && <span style={{ fontSize: 9, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>+{kevInWindow.length - 3} more</span>}
+                            </div>
+                          </div>
+                        )}
+                        {traj.epssHighCount > 0 && (
+                          <div style={{ background: 'rgba(255,109,0,0.04)', border: '1px solid rgba(255,109,0,0.2)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                            <div style={{ fontSize: 10, color: '#ff6d00', fontWeight: 700, textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace", marginBottom: 6, letterSpacing: 1 }}>HIGH EPSS</div>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: '#ff6d00' }}>{traj.epssHighCount}</div>
+                            <div style={{ fontSize: 10, color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>&gt;10% exploit probability</div>
+                            <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+                              {epssHighInWindow.sort((a, b) => (b.epss ?? 0) - (a.epss ?? 0)).slice(0, 3).map(c => (
+                                <span key={c.id} style={{ fontSize: 9, color: '#ff9100', background: 'rgba(255,109,0,0.08)', padding: '1px 6px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace" }}>{((c.epss ?? 0) * 100).toFixed(0)}%</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
                   <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#cbd5e1', marginBottom: 12 }}>R Calculation</div>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, lineHeight: 2.2, color: '#94a3b8' }}>
                       <span style={{ color: '#64748b' }}>Base:</span> <span style={{ color: '#e2e8f0' }}>1.00</span><br />
                       <span style={{ color: '#64748b' }}>Critical CVEs:</span> <span style={{ color: '#ff1744' }}>{traj.currentWindow.filter(c => c.severity === 'CRITICAL').length}</span> × 0.15 = <span style={{ color: '#e2e8f0' }}>+{(traj.currentWindow.filter(c => c.severity === 'CRITICAL').length * 0.15).toFixed(2)}</span><br />
                       <span style={{ color: '#64748b' }}>High CVEs:</span> <span style={{ color: '#ff6d00' }}>{traj.currentWindow.filter(c => c.severity === 'HIGH').length}</span> × 0.15 = <span style={{ color: '#e2e8f0' }}>+{(traj.currentWindow.filter(c => c.severity === 'HIGH').length * 0.15).toFixed(2)}</span><br />
+                      {traj.kevCount > 0 && (
+                        <><span style={{ color: '#64748b' }}>↳ of which:</span> <span style={{ color: '#ff1744' }}>{traj.kevCount} CISA KEV</span> <span style={{ color: '#475569', fontSize: 11 }}>(already exploited in wild)</span><br /></>
+                      )}
                       <div style={{ borderTop: '1px solid rgba(148,163,184,0.1)', marginTop: 8, paddingTop: 8, fontSize: 15, color: '#818cf8', fontWeight: 700 }}>R = {traj.recurrence.toFixed(2)}</div>
                     </div>
                   </div>
                   <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
                     <div style={{ fontSize: 12, color: '#818cf8', fontWeight: 600, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>HOW R WORKS</div>
-                    <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.8 }}>R = 1 + (critical + high CVEs in current 12mo × 0.15). A single critical CVE is a mistake. Ten critical CVEs in one year is a pattern — the multiplier compounds to penalize companies that repeatedly ship high-severity vulnerabilities.</div>
+                    <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.8 }}>R = 1 + (critical + high CVEs in current 12mo × 0.15). A single critical CVE is a mistake. Ten critical CVEs in one year is a pattern — the multiplier compounds to penalize companies that repeatedly ship high-severity vulnerabilities. CISA KEV hits shown above are the worst offenders: vulnerabilities already confirmed exploited in the wild.</div>
                   </div>
                 </div>
               )}
