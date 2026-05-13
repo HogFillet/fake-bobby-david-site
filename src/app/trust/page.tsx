@@ -400,10 +400,110 @@ interface LeaderboardEntry {
   grade: string
   trajectory: number
   cveCount: number
+  percentileRank?: number | null
 }
 
 function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')
+}
+
+const GRADE_COLOR: Record<string, string> = {
+  'A+': '#00c853', A: '#00c853', B: '#64dd17', C: '#ffc400', D: '#ff6d00', F: '#ff1744',
+}
+
+function PeerChart({ currentTrajectory, currentName, leaderboard }: {
+  currentTrajectory: number
+  currentName: string
+  leaderboard: LeaderboardEntry[]
+}) {
+  if (leaderboard.length < 2) return null
+
+  // Merge leaderboard with current company (may or may not be tracked)
+  const slug = toSlug(currentName)
+  const peers = leaderboard.filter(c => c.slug !== slug)
+  const allScores = [...peers.map(c => c.trajectory), currentTrajectory]
+
+  const logMin = Math.log10(Math.max(1, Math.min(...allScores)))
+  const logMax = Math.log10(Math.max(...allScores))
+  const logRange = logMax - logMin || 1
+  const toX = (v: number) => ((Math.log10(Math.max(1, v)) - logMin) / logRange) * 96 + 2
+
+  const rank = peers.filter(c => c.trajectory < currentTrajectory).length + 1
+  const total = peers.length + 1
+
+  return (
+    <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, fontFamily: "'JetBrains Mono', monospace" }}>Peer Comparison</span>
+        <span style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ color: '#818cf8', fontWeight: 700 }}>#{rank}</span>
+          <span style={{ color: '#475569' }}> of {total} tracked</span>
+        </span>
+      </div>
+
+      {/* Log-scale dot plot */}
+      <div style={{ position: 'relative', height: 56, marginBottom: 4 }}>
+        {/* Track */}
+        <div style={{ position: 'absolute', top: 20, left: '2%', right: '2%', height: 3, borderRadius: 2, background: 'rgba(148,163,184,0.1)' }} />
+
+        {/* Grade zone markers */}
+        {(['F', 'D', 'C', 'B', 'A'] as const).map((g) => {
+          const thresholds: Record<string, number> = { F: 400, D: 180, C: 80, B: 30, A: 0 }
+          const refScore = (thresholds[g] * (peers[0]?.cveCount || 100))
+          if (refScore <= 0) return null
+          const x = toX(refScore)
+          if (x <= 2 || x >= 98) return null
+          return (
+            <div key={g} style={{ position: 'absolute', top: 13, left: `${x}%`, width: 1, height: 17, background: `${GRADE_COLOR[g]}30`, transform: 'translateX(-50%)' }} />
+          )
+        })}
+
+        {/* Peer dots */}
+        {peers.map(c => (
+          <div key={c.slug} title={`${c.name}: ${c.trajectory.toLocaleString()}`} style={{
+            position: 'absolute', top: 12, left: `${toX(c.trajectory)}%`,
+            width: 13, height: 13, borderRadius: '50%',
+            background: GRADE_COLOR[c.grade] ?? '#64748b',
+            transform: 'translateX(-50%)',
+            opacity: 0.65, cursor: 'default',
+            boxShadow: `0 0 6px ${GRADE_COLOR[c.grade] ?? '#64748b'}50`,
+          }} />
+        ))}
+
+        {/* Current company — larger, indigo */}
+        <div style={{
+          position: 'absolute', top: 7, left: `${toX(currentTrajectory)}%`,
+          width: 22, height: 22, borderRadius: '50%',
+          background: '#818cf8', border: '2px solid #6366f1',
+          transform: 'translateX(-50%)', zIndex: 2,
+          boxShadow: '0 0 12px #6366f160',
+        }} title={`${currentName}: ${currentTrajectory.toLocaleString()}`} />
+
+        {/* Current company label */}
+        <div style={{
+          position: 'absolute', top: 36,
+          left: `clamp(10%, ${toX(currentTrajectory)}%, 90%)`,
+          transform: 'translateX(-50%)',
+          fontSize: 10, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace",
+          whiteSpace: 'nowrap',
+        }}>{currentName}</div>
+      </div>
+
+      {/* Axis labels: best → worst */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14, paddingTop: 8, borderTop: '1px solid rgba(148,163,184,0.06)' }}>
+        <span style={{ fontSize: 9, color: '#00c853', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1 }}>← better</span>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {(['A', 'B', 'C', 'D', 'F'] as const).map(g => (
+            <span key={g} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: GRADE_COLOR[g], display: 'inline-block', opacity: 0.8 }} />
+              {g}
+            </span>
+          ))}
+        </div>
+        <span style={{ fontSize: 9, color: '#ff1744', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1 }}>worse →</span>
+      </div>
+    </div>
+  )
 }
 
 export default function TrustDebtApp() {
@@ -757,6 +857,14 @@ export default function TrustDebtApp() {
                       </div>
                     ))}
                   </div>
+
+                  {leaderboard.length >= 2 && traj && (
+                    <PeerChart
+                      currentTrajectory={trajectoryScore}
+                      currentName={companyName}
+                      leaderboard={leaderboard}
+                    />
+                  )}
                 </div>
               )}
 
