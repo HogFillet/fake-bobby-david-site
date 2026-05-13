@@ -145,6 +145,37 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
   return { tdCurrent, tdPrevious, delta, recurrence, kevCount, kFactor, epssHighCount, pFactor, trajectory, currentWindow, previousWindow, critHighCurrent, quarters }
 }
 
+interface TrustVelocity {
+  qoq: number[]       // quarter-over-quarter fractional change per quarter
+  avg: number         // mean QoQ change
+  grade: string
+  label: string
+  color: string
+}
+
+function calculateTrustVelocity(quarters: Quarter[]): TrustVelocity | null {
+  const filled = quarters.filter(q => q.debt > 0)
+  if (filled.length < 2) return null
+  const qoq: number[] = []
+  for (let i = 1; i < filled.length; i++) {
+    qoq.push(filled[i - 1].debt > 0 ? (filled[i].debt - filled[i - 1].debt) / filled[i - 1].debt : 0)
+  }
+  const avg = qoq.reduce((s, v) => s + v, 0) / qoq.length
+  if (avg <= -0.15) return { qoq, avg, grade: 'A', label: 'Paying down debt', color: '#00c853' }
+  if (avg < 0)      return { qoq, avg, grade: 'B', label: 'Slowly improving', color: '#64dd17' }
+  if (avg < 0.10)   return { qoq, avg, grade: 'C', label: 'Stable', color: '#ffc400' }
+  if (avg < 0.30)   return { qoq, avg, grade: 'D', label: 'Accumulating risk', color: '#ff6d00' }
+  return               { qoq, avg, grade: 'F', label: 'Debt spiral', color: '#ff1744' }
+}
+
+function velGrade(qoq: number): { grade: string; color: string } {
+  if (qoq <= -0.15) return { grade: 'A', color: '#00c853' }
+  if (qoq < 0)      return { grade: 'B', color: '#64dd17' }
+  if (qoq < 0.10)   return { grade: 'C', color: '#ffc400' }
+  if (qoq < 0.30)   return { grade: 'D', color: '#ff6d00' }
+  return               { grade: 'F', color: '#ff1744' }
+}
+
 function TrendIndicator({ delta }: { delta: number }) {
   const improving = delta < 0.95
   const worsening = delta > 1.05
@@ -792,12 +823,13 @@ export default function TrustDebtApp() {
               {/* View Mode Tabs */}
               <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
                 {[
-                  { key: 'trajectory', label: 'Trust Trajectory™', icon: '◆' },
-                  { key: 'window', label: 'Rolling Window (Δ)', icon: '↔' },
-                  { key: 'recurrence', label: 'Recurrence (R)', icon: '⟳' },
+                  { key: 'trajectory', label: 'Trajectory™', icon: '◆' },
+                  { key: 'window', label: 'Rolling Window', icon: '↔' },
+                  { key: 'recurrence', label: 'Recurrence', icon: '⟳' },
+                  { key: 'velocity', label: 'Trust Velocity', icon: '⚡' },
                 ].map((tab) => (
-                  <button key={tab.key} className="view-tab" onClick={() => setViewMode(tab.key)} style={{ flex: 1, padding: '10px 12px', borderRadius: 8, background: viewMode === tab.key ? 'rgba(99,102,241,0.15)' : 'transparent', color: viewMode === tab.key ? '#818cf8' : '#64748b', fontSize: 12, fontWeight: viewMode === tab.key ? 700 : 500, letterSpacing: 0.3, borderBottom: viewMode === tab.key ? '2px solid #6366f1' : '2px solid transparent' }}>
-                    <span style={{ marginRight: 6 }}>{tab.icon}</span>{tab.label}
+                  <button key={tab.key} className="view-tab" onClick={() => setViewMode(tab.key)} style={{ flex: 1, padding: '10px 8px', borderRadius: 8, background: viewMode === tab.key ? 'rgba(99,102,241,0.15)' : 'transparent', color: viewMode === tab.key ? '#818cf8' : '#64748b', fontSize: 11, fontWeight: viewMode === tab.key ? 700 : 500, letterSpacing: 0.3, borderBottom: viewMode === tab.key ? '2px solid #6366f1' : '2px solid transparent' }}>
+                    <span style={{ marginRight: 4 }}>{tab.icon}</span>{tab.label}
                   </button>
                 ))}
               </div>
@@ -1010,6 +1042,63 @@ export default function TrustDebtApp() {
                 </div>
               )}
 
+              {/* Trust Velocity View */}
+              {viewMode === 'velocity' && traj && (() => {
+                const tv = calculateTrustVelocity(traj.quarters)
+                const filledQ = traj.quarters.filter(q => q.debt > 0)
+                return (
+                  <div style={{ animation: 'fadeSlideIn 0.3s ease' }}>
+                    <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 16, padding: 28, marginBottom: 16, textAlign: 'center' }}>
+                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>Trust Velocity™</div>
+                      {tv ? (
+                        <>
+                          <div style={{ fontSize: 64, fontWeight: 800, color: tv.color, lineHeight: 1 }}>{tv.grade}</div>
+                          <div style={{ fontSize: 16, fontWeight: 600, color: tv.color, marginTop: 8 }}>{tv.label}</div>
+                          <div style={{ fontSize: 13, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", marginTop: 6 }}>
+                            {tv.avg >= 0 ? '+' : ''}{(tv.avg * 100).toFixed(1)}% avg quarterly change
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: 14, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>Not enough quarterly data yet</div>
+                      )}
+                    </div>
+
+                    {/* Quarter-by-quarter breakdown */}
+                    {filledQ.length >= 2 && tv && (
+                      <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#cbd5e1', marginBottom: 16 }}>Quarter-by-Quarter Velocity</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {filledQ.slice(1).map((q, i) => {
+                            const prev = filledQ[i]
+                            const change = prev.debt > 0 ? (q.debt - prev.debt) / prev.debt : 0
+                            const { grade, color } = velGrade(change)
+                            const pct = (change * 100).toFixed(1)
+                            const arrow = change < -0.02 ? '↓' : change > 0.02 ? '↑' : '→'
+                            return (
+                              <div key={q.label} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px 36px', gap: 12, alignItems: 'center', padding: '10px 14px', background: 'rgba(148,163,184,0.03)', borderRadius: 8 }}>
+                                <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{prev.label} → {q.label}</span>
+                                <div style={{ height: 6, borderRadius: 3, background: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${Math.min(100, Math.abs(change) * 200)}%`, background: color, borderRadius: 3 }} />
+                                </div>
+                                <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>
+                                  {arrow} {change >= 0 ? '+' : ''}{pct}%
+                                </span>
+                                <span style={{ fontSize: 13, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>{grade}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+                      <div style={{ fontSize: 12, color: '#818cf8', fontWeight: 600, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>HOW TRUST VELOCITY™ WORKS</div>
+                      <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.8 }}>Trust Velocity measures the quarter-over-quarter rate of change in Trust Debt accumulation. A company improving its security posture will have a negative velocity (debt shrinking). A debt spiral — where each quarter is worse than the last — grades as F. Each quarter is graded independently so you can see exactly when things started getting worse, or better.</div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Severity Distribution */}
               <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -1089,28 +1178,44 @@ export default function TrustDebtApp() {
               ) : null}
               {leaderboard.length > 0 && (
                 <div style={{ marginTop: searchHistory.length > 0 ? 32 : 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#cbd5e1' }}>Tracked Companies</span>
                     <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", background: 'rgba(99,102,241,0.08)', padding: '2px 8px', borderRadius: 4 }}>{leaderboard.length}</span>
-                    <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginLeft: 'auto' }}>updated nightly</span>
+                    <a href="/trust/vs" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', padding: '3px 10px', borderRadius: 6, transition: 'all 0.15s' }}>
+                      ⚔ Compare
+                    </a>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-                    {leaderboard.map((c) => {
-                      const gc = c.grade === 'A+' || c.grade === 'A' ? '#00c853' : c.grade === 'B' ? '#64748b' : c.grade === 'C' ? '#ffc400' : c.grade === 'D' ? '#ff6d00' : '#ff1744'
-                      return (
-                        <button key={c.slug} onClick={() => { setQuery(c.name); fetchCVEs(c.name, yearsBack) }}
-                          style={{ background: 'rgba(15,23,42,0.6)', border: `1px solid ${gc}30`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
-                          onMouseEnter={e => (e.currentTarget.style.borderColor = gc + '80')}
-                          onMouseLeave={e => (e.currentTarget.style.borderColor = gc + '30')}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>{c.name}</span>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: gc, flexShrink: 0, marginLeft: 6 }}>{c.grade}</span>
-                          </div>
-                          <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
-                        </button>
-                      )
-                    })}
-                  </div>
+                  {/* Quick insights strip */}
+                  {(() => {
+                    const sorted = [...leaderboard].sort((a, b) => a.trajectory - b.trajectory)
+                    const best = sorted[0]
+                    const worst = sorted[sorted.length - 1]
+                    return (
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                        {best && <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: '#00c853', background: 'rgba(0,200,83,0.07)', border: '1px solid rgba(0,200,83,0.15)', padding: '3px 8px', borderRadius: 6 }}>Most trusted: {best.name} ({best.grade})</span>}
+                        {worst && <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: '#ff6d00', background: 'rgba(255,109,0,0.07)', border: '1px solid rgba(255,109,0,0.15)', padding: '3px 8px', borderRadius: 6 }}>Least trusted: {worst.name} ({worst.grade})</span>}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+              {leaderboard.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+                  {leaderboard.map((c) => {
+                    const gc = c.grade === 'A+' || c.grade === 'A' ? '#00c853' : c.grade === 'B' ? '#64748b' : c.grade === 'C' ? '#ffc400' : c.grade === 'D' ? '#ff6d00' : '#ff1744'
+                    return (
+                      <button key={c.slug} onClick={() => { setQuery(c.name); fetchCVEs(c.name, yearsBack) }}
+                        style={{ background: 'rgba(15,23,42,0.6)', border: `1px solid ${gc}30`, borderRadius: 10, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = gc + '80')}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = gc + '30')}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>{c.name}</span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: gc, flexShrink: 0, marginLeft: 6 }}>{c.grade}</span>
+                        </div>
+                        <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
               {leaderboard.length === 0 && searchHistory.length === 0 && (
