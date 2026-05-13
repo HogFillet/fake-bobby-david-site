@@ -419,8 +419,9 @@ function PeerChart({ currentTrajectory, currentName, leaderboard }: {
   if (leaderboard.length < 2) return null
 
   // Merge leaderboard with current company (may or may not be tracked)
+  // Guard against null/undefined trajectories that can slip past the backend filter
   const slug = toSlug(currentName)
-  const peers = leaderboard.filter(c => c.slug !== slug)
+  const peers = leaderboard.filter(c => c.slug !== slug && c.trajectory != null && isFinite(c.trajectory))
   const allScores = [...peers.map(c => c.trajectory), currentTrajectory]
 
   const logMin = Math.log10(Math.max(1, Math.min(...allScores)))
