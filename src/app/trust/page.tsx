@@ -197,23 +197,28 @@ function TrendIndicator({ delta }: { delta: number }) {
 function QuarterlySparkline({ quarters }: { quarters: Quarter[] }) {
   const maxDebt = Math.max(...quarters.map((q) => q.debt), 1)
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
-      {quarters.map((q, i) => {
-        const pct = (q.debt / maxDebt) * 100
-        const isRecent = i >= 6
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <span style={{ fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
-              {q.count > 0 ? q.count : ''}
-            </span>
-            <div style={{
-              width: '100%', height: `${Math.max(pct, 3)}%`, borderRadius: '3px 3px 0 0',
-              background: isRecent ? 'linear-gradient(to top, #6366f1, #818cf8)' : 'rgba(99,102,241,0.25)',
-              transition: 'height 0.6s ease', minHeight: 2,
-            }} />
-          </div>
-        )
-      })}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 0.8 }}>CVEs / qtr</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
+        {quarters.map((q, i) => {
+          const pct = (q.debt / maxDebt) * 100
+          const isRecent = i >= 6
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <span style={{ fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
+                {q.count > 0 ? q.count : ''}
+              </span>
+              <div style={{
+                width: '100%', height: `${Math.max(pct, 3)}%`, borderRadius: '3px 3px 0 0',
+                background: isRecent ? 'linear-gradient(to top, #6366f1, #818cf8)' : 'rgba(99,102,241,0.25)',
+                transition: 'height 0.6s ease', minHeight: 2,
+              }} />
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -710,7 +715,7 @@ export default function TrustDebtApp() {
         .view-tab { transition: all 0.2s; cursor: pointer; border: none; font-family: 'JetBrains Mono', monospace; }
         .view-tab:hover { background: rgba(99,102,241,0.12) !important; }
         * { box-sizing: border-box; }
-        .tab-short { display: none; }
+        .view-tab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         @media (max-width: 600px) {
           .td-search-row { flex-wrap: wrap !important; }
           .td-search-row .td-input { min-width: 100% !important; order: -1; }
@@ -718,9 +723,7 @@ export default function TrustDebtApp() {
           .td-search-row .td-btn { flex: 1 !important; }
           .rw-cols { flex-direction: column !important; }
           .rw-divider { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 4px 0 !important; }
-          .view-tab { font-size: 9px !important; padding: 8px 3px !important; }
-          .tab-full { display: none; }
-          .tab-short { display: inline; }
+          .view-tab { font-size: 9.5px !important; padding: 8px 4px !important; }
         }
       `}</style>
 
@@ -835,15 +838,13 @@ export default function TrustDebtApp() {
               {/* View Mode Tabs */}
               <div className="view-tabs-bar" style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
                 {[
-                  { key: 'trajectory', label: 'Trajectory™', short: 'Traj™', icon: '◆' },
-                  { key: 'window', label: 'Rolling Window', short: 'Window', icon: '↔' },
-                  { key: 'recurrence', label: 'Recurrence', short: 'Recur', icon: '⟳' },
-                  { key: 'velocity', label: 'Trust Velocity', short: 'Velocity', icon: '⚡' },
+                  { key: 'trajectory', label: 'Trajectory™', icon: '◆' },
+                  { key: 'window', label: 'Window', icon: '↔' },
+                  { key: 'recurrence', label: 'Recurrence', icon: '⟳' },
+                  { key: 'velocity', label: 'Velocity', icon: '⚡' },
                 ].map((tab) => (
                   <button key={tab.key} className="view-tab" onClick={() => setViewMode(tab.key)} style={{ flex: 1, padding: '10px 8px', borderRadius: 8, background: viewMode === tab.key ? 'rgba(99,102,241,0.15)' : 'transparent', color: viewMode === tab.key ? '#818cf8' : '#64748b', fontSize: 11, fontWeight: viewMode === tab.key ? 700 : 500, letterSpacing: 0.3, borderBottom: viewMode === tab.key ? '2px solid #6366f1' : '2px solid transparent' }}>
-                    <span style={{ marginRight: 4 }}>{tab.icon}</span>
-                    <span className="tab-full">{tab.label}</span>
-                    <span className="tab-short">{tab.short}</span>
+                    {tab.icon} {tab.label}
                   </button>
                 ))}
               </div>
@@ -966,9 +967,10 @@ export default function TrustDebtApp() {
                       <span style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>← older · newer →</span>
                     </div>
                     <QuarterlySparkline quarters={traj.quarters} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, marginBottom: 2 }}>
                       {traj.quarters.map((q, i) => <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 9, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{q.debt > 0 ? Math.round(q.debt) : ''}</div>)}
                     </div>
+                    <span style={{ fontSize: 9, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 0.8 }}>Trust Debt / qtr</span>
                   </div>
                   <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
                     <div style={{ fontSize: 12, color: '#818cf8', fontWeight: 600, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>HOW Δ WORKS</div>
