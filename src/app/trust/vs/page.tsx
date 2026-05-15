@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -116,7 +116,7 @@ function MetricRow({
   )
 }
 
-export default function VSPage() {
+function VSPageInner() {
   const searchParams = useSearchParams()
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [stats, setStats] = useState<{ count?: number; median?: number; min?: number; max?: number } | null>(null)
@@ -407,5 +407,13 @@ export default function VSPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function VSPage() {
+  return (
+    <Suspense>
+      <VSPageInner />
+    </Suspense>
   )
 }
