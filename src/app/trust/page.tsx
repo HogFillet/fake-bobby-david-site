@@ -573,12 +573,20 @@ export default function TrustDebtApp() {
   const [viewMode, setViewMode] = useState('trajectory')
   const [currentSlug, setCurrentSlug] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [nvdCount, setNvdCount] = useState<number | null>(null)
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('trust-debt-history')
       if (saved) setSearchHistory(JSON.parse(saved))
     } catch { /* no history yet */ }
+  }, [])
+
+  useEffect(() => {
+    fetch(`${TRUST_DEBT_API}/api/nvd/count`)
+      .then(r => r.json())
+      .then(d => { if (d.count) setNvdCount(d.count) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -824,6 +832,11 @@ export default function TrustDebtApp() {
                 </button>
               ))}
             </div>
+            {nvdCount !== null && (
+              <p style={{ margin: '12px 0 0', fontSize: 11, color: '#334155', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, textAlign: 'right' }}>
+                POWERED BY NIST NVD · LIVE COUNT {nvdCount.toLocaleString()} CVES INDEXED
+              </p>
+            )}
           </div>
 
           {/* Loading */}
