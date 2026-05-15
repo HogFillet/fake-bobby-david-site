@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 const TRUST_DEBT_API = 'https://trust-debt-api.hogfillet.workers.dev'
 
@@ -116,10 +117,11 @@ function MetricRow({
 }
 
 export default function VSPage() {
+  const searchParams = useSearchParams()
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [stats, setStats] = useState<{ count?: number; median?: number; min?: number; max?: number } | null>(null)
-  const [slugA, setSlugA] = useState('')
-  const [slugB, setSlugB] = useState('')
+  const [slugA, setSlugA] = useState(searchParams.get('a') ?? '')
+  const [slugB, setSlugB] = useState(searchParams.get('b') ?? '')
   const [dataA, setDataA] = useState<CompanyDetail | null>(null)
   const [dataB, setDataB] = useState<CompanyDetail | null>(null)
   const [loadingA, setLoadingA] = useState(false)

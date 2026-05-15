@@ -558,6 +558,7 @@ export default function TrustDebtApp() {
   const [fakeCharacter, setFakeCharacter] = useState<{ img: string; name: string; caption: string } | null>(null)
   const [searchHistory, setSearchHistory] = useState<HistoryEntry[]>([])
   const [viewMode, setViewMode] = useState('trajectory')
+  const [currentSlug, setCurrentSlug] = useState('')
 
   useEffect(() => {
     try {
@@ -603,6 +604,7 @@ export default function TrustDebtApp() {
     try {
       // Try cached trust-debt-api first
       const slug = toSlug(searchQuery.trim())
+      setCurrentSlug(slug)
       const cachedRes = await fetch(`${TRUST_DEBT_API}/api/company/${slug}`)
       let rawCves: CVE[]
 
@@ -823,6 +825,9 @@ export default function TrustDebtApp() {
                     ← Recent searches
                   </button>
                 )}
+                <a href={`/trust/vs${currentSlug ? `?a=${currentSlug}` : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', padding: '3px 10px', borderRadius: 6, transition: 'all 0.15s' }}>
+                  ⚔ Compare
+                </a>
                 {dataSource && (
                   <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: "'JetBrains Mono', monospace", padding: '2px 8px', borderRadius: 4, background: dataSource === 'cached' ? 'rgba(0,200,83,0.1)' : 'rgba(99,102,241,0.1)', color: dataSource === 'cached' ? '#00c853' : '#818cf8', border: `1px solid ${dataSource === 'cached' ? '#00c85330' : '#6366f130'}` }}>
                     {dataSource === 'cached' ? '⚡ cached' : '🔍 live query'}
