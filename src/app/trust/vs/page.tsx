@@ -126,6 +126,11 @@ function VSPageInner() {
   const [loadingA, setLoadingA] = useState(false)
   const [loadingB, setLoadingB] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [voteState, setVoteState] = useState<'idle' | 'submitting' | 'voted'>('idle')
+  const [matchupVotes, setMatchupVotes] = useState<{ aWins: number; bWins: number; total: number } | null>(null)
+  const [vendorVotesA, setVendorVotesA] = useState<{ wins: number; losses: number } | null>(null)
+  const [vendorVotesB, setVendorVotesB] = useState<{ wins: number; losses: number } | null>(null)
+  const [myVote, setMyVote] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`${TRUST_DEBT_API}/api/leaderboard`)
@@ -151,6 +156,56 @@ function VSPageInner() {
     fetch(`${TRUST_DEBT_API}/api/company/${slugB}`)
       .then(r => r.json()).then(setDataB).catch(() => {}).finally(() => setLoadingB(false))
   }, [slugB])
+
+  // Reset vote when either slug changes
+  useEffect(() => {
+    setVoteState('idle')
+    setMatchupVotes(null)
+    setVendorVotesA(null)
+    setVendorVotesB(null)
+    setMyVote(null)
+  }, [slugA, slugB])
+
+  // Load vote data once both companies are loaded
+  useEffect(() => {
+    if (!dataA || !dataB || !slugA || !slugB) return
+    const [sA, sB] = [slugA, slugB].sort()
+    const lsKey = `trust-vote-${sA}--${sB}`
+    const stored = localStorage.getItem(lsKey)
+    if (stored) { setMyVote(stored); setVoteState('voted') }
+    fetch(`${TRUST_DEBT_API}/api/matchup/${slugA}/${slugB}`)
+      .then(r => r.json()).then(setMatchupVotes).catch(() => {})
+    Promise.all([
+      fetch(`${TRUST_DEBT_API}/api/votes/${slugA}`).then(r => r.json()),
+      fetch(`${TRUST_DEBT_API}/api/votes/${slugB}`).then(r => r.json()),
+    ]).then(([a, b]) => { setVendorVotesA(a); setVendorVotesB(b) }).catch(() => {})
+  }, [dataA, dataB, slugA, slugB])
+
+  async function submitVote(side: 'a' | 'b') {
+    if (voteState !== 'idle') return
+    setVoteState('submitting')
+    const winnerSlug = side === 'a' ? slugA : slugB
+    const [sA, sB] = [slugA, slugB].sort()
+    try {
+      await fetch(`${TRUST_DEBT_API}/api/votes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a: slugA, b: slugB, winner: winnerSlug }),
+      })
+      localStorage.setItem(`trust-vote-${sA}--${sB}`, winnerSlug)
+      setMyVote(winnerSlug)
+      setVoteState('voted')
+      // Refresh both matchup and vendor tallies
+      const [mv, va, vb] = await Promise.all([
+        fetch(`${TRUST_DEBT_API}/api/matchup/${slugA}/${slugB}`).then(r => r.json()),
+        fetch(`${TRUST_DEBT_API}/api/votes/${slugA}`).then(r => r.json()),
+        fetch(`${TRUST_DEBT_API}/api/votes/${slugB}`).then(r => r.json()),
+      ])
+      setMatchupVotes(mv)
+      setVendorVotesA(va)
+      setVendorVotesB(vb)
+    } catch { setVoteState('idle') }
+  }
 
   const snap = (d: CompanyDetail | null): Snapshot => d?.latestSnapshot ?? {}
 
@@ -346,6 +401,91 @@ function VSPageInner() {
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Community Trust Vote */}
+              <div style={{ marginBottom: 20 }}>
+                {voteState === 'voted' ? (
+                  <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 16, padding: '22px 28px', animation: 'fadeSlideIn 0.3s ease' }}>
+                    <div style={{ fontSize: 10, color: '#6366f1', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 2, marginBottom: 10 }}>Community Trust Vote</div>
+                    {myVote && (
+                      <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 18, fontFamily: "'JetBrains Mono', monospace" }}>
+                        You voted: <span style={{ color: '#818cf8', fontWeight: 700 }}>{myVote === slugA ? dataA?.company.name : dataB?.company.name}</span>
+                      </div>
+                    )}
+                    {matchupVotes && matchupVotes.total > 0 ? (
+                      <div>
+                        {[
+                          { slug: slugA, name: dataA?.company.name, wins: matchupVotes.aWins },
+                          { slug: slugB, name: dataB?.company.name, wins: matchupVotes.bWins },
+                        ].map(({ slug, name, wins }) => {
+                          const pct = Math.round((wins / matchupVotes.total) * 100)
+                          const isMyVote = myVote === slug
+                          return (
+                            <div key={slug} style={{ marginBottom: 14 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                                <span style={{ fontSize: 12, color: isMyVote ? '#e2e8f0' : '#64748b', fontWeight: isMyVote ? 700 : 400, fontFamily: "'Space Grotesk', sans-serif" }}>{name}</span>
+                                <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{pct}% · {wins.toLocaleString()} votes</span>
+                              </div>
+                              <div style={{ height: 6, background: 'rgba(148,163,184,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${pct}%`, background: isMyVote ? '#6366f1' : 'rgba(99,102,241,0.25)', borderRadius: 3, transition: 'width 0.6s ease' }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                        <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+                          {matchupVotes.total.toLocaleString()} total votes on this matchup
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>You&apos;re the first to vote on this matchup.</div>
+                    )}
+                    {(vendorVotesA || vendorVotesB) && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(148,163,184,0.06)' }}>
+                        {[
+                          { name: dataA?.company.name, v: vendorVotesA },
+                          { name: dataB?.company.name, v: vendorVotesB },
+                        ].map(({ name, v }) => (
+                          <div key={name} style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 3 }}>{name}</div>
+                            <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
+                              <span style={{ color: '#00c853' }}>{(v?.wins ?? 0).toLocaleString()}W</span>
+                              <span style={{ color: '#334155', margin: '0 4px' }}>·</span>
+                              <span style={{ color: '#ff4d4d' }}>{(v?.losses ?? 0).toLocaleString()}L</span>
+                              <span style={{ color: '#334155', fontSize: 9, marginLeft: 4 }}>all-time</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 16, padding: '22px 28px' }}>
+                    <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 }}>Community Trust Vote</div>
+                    <div style={{ fontSize: 12, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginBottom: 20 }}>The data spoke. Now you speak — who do you actually trust with your data?</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {([{ side: 'a' as const, data: dataA, slug: slugA }, { side: 'b' as const, data: dataB, slug: slugB }]).map(({ side, data }) => (
+                        <button
+                          key={side}
+                          onClick={() => submitVote(side)}
+                          disabled={voteState === 'submitting'}
+                          style={{
+                            background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 12,
+                            padding: '20px 16px', cursor: voteState === 'submitting' ? 'wait' : 'pointer',
+                            color: '#e2e8f0', transition: 'all 0.2s', textAlign: 'center',
+                            fontFamily: "'Space Grotesk', sans-serif", outline: 'none',
+                          }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.14)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.45)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.06)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.2)' }}
+                        >
+                          <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>I trust</div>
+                          <div style={{ fontSize: 17, fontWeight: 800, color: '#818cf8', marginBottom: 6 }}>{data?.company.name}</div>
+                          <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>more with my data</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Head-to-head table */}
