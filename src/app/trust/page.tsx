@@ -680,8 +680,9 @@ export default function TrustDebtApp() {
       setCves(withDebt)
       setTotalResults(parsed.length)
 
-      // Auto-track companies discovered via live query (fire-and-forget, only if results exist)
-      if (parsed.length > 0 && !cachedRes.ok) {
+      // Auto-track companies discovered via live query.
+      // Threshold of 10 CVEs filters out one-off/product-level searches while still catching real vendors.
+      if (parsed.length >= 10 && !cachedRes.ok) {
         fetch(`${TRUST_DEBT_API}/api/companies`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
