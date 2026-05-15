@@ -139,7 +139,9 @@ function calculateTrajectory(cves: CVEWithDebt[]): Trajectory {
     })
     const qDebt = qCves.reduce((s, c) => s + c.trustDebt, 0)
     const qCritHigh = qCves.filter((c) => c.severity === 'CRITICAL' || c.severity === 'HIGH').length
-    quarters.push({ label: `Q${8 - q}`, debt: qDebt, count: qCves.length, critHigh: qCritHigh })
+    const qYear = qStart.getFullYear()
+    const qNum = Math.floor(qStart.getMonth() / 3) + 1
+    quarters.push({ label: `${qYear} Q${qNum}`, debt: qDebt, count: qCves.length, critHigh: qCritHigh })
   }
 
   return { tdCurrent, tdPrevious, delta, recurrence, kevCount, kFactor, epssHighCount, pFactor, trajectory, currentWindow, previousWindow, critHighCurrent, quarters }
