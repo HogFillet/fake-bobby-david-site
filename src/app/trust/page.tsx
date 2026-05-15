@@ -710,6 +710,18 @@ export default function TrustDebtApp() {
         .view-tab { transition: all 0.2s; cursor: pointer; border: none; font-family: 'JetBrains Mono', monospace; }
         .view-tab:hover { background: rgba(99,102,241,0.12) !important; }
         * { box-sizing: border-box; }
+        .tab-short { display: none; }
+        @media (max-width: 600px) {
+          .td-search-row { flex-wrap: wrap !important; }
+          .td-search-row .td-input { min-width: 100% !important; order: -1; }
+          .td-search-row select { flex: 1 !important; }
+          .td-search-row .td-btn { flex: 1 !important; }
+          .rw-cols { flex-direction: column !important; }
+          .rw-divider { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 4px 0 !important; }
+          .view-tab { font-size: 9px !important; padding: 8px 3px !important; }
+          .tab-full { display: none; }
+          .tab-short { display: inline; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: '#0b0f1a', color: '#e2e8f0', fontFamily: "'Space Grotesk', sans-serif", position: 'relative', overflow: 'hidden' }}>
@@ -735,7 +747,7 @@ export default function TrustDebtApp() {
 
           {/* Search */}
           <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 16, padding: 24, marginBottom: 24, backdropFilter: 'blur(12px)' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="td-search-row" style={{ display: 'flex', gap: 8 }}>
               <input
                 className="td-input"
                 type="text"
@@ -821,15 +833,17 @@ export default function TrustDebtApp() {
                 </div>
               )}
               {/* View Mode Tabs */}
-              <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
+              <div className="view-tabs-bar" style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
                 {[
-                  { key: 'trajectory', label: 'Trajectory™', icon: '◆' },
-                  { key: 'window', label: 'Rolling Window', icon: '↔' },
-                  { key: 'recurrence', label: 'Recurrence', icon: '⟳' },
-                  { key: 'velocity', label: 'Trust Velocity', icon: '⚡' },
+                  { key: 'trajectory', label: 'Trajectory™', short: 'Traj™', icon: '◆' },
+                  { key: 'window', label: 'Rolling Window', short: 'Window', icon: '↔' },
+                  { key: 'recurrence', label: 'Recurrence', short: 'Recur', icon: '⟳' },
+                  { key: 'velocity', label: 'Trust Velocity', short: 'Velocity', icon: '⚡' },
                 ].map((tab) => (
                   <button key={tab.key} className="view-tab" onClick={() => setViewMode(tab.key)} style={{ flex: 1, padding: '10px 8px', borderRadius: 8, background: viewMode === tab.key ? 'rgba(99,102,241,0.15)' : 'transparent', color: viewMode === tab.key ? '#818cf8' : '#64748b', fontSize: 11, fontWeight: viewMode === tab.key ? 700 : 500, letterSpacing: 0.3, borderBottom: viewMode === tab.key ? '2px solid #6366f1' : '2px solid transparent' }}>
-                    <span style={{ marginRight: 4 }}>{tab.icon}</span>{tab.label}
+                    <span style={{ marginRight: 4 }}>{tab.icon}</span>
+                    <span className="tab-full">{tab.label}</span>
+                    <span className="tab-short">{tab.short}</span>
                   </button>
                 ))}
               </div>
@@ -909,7 +923,7 @@ export default function TrustDebtApp() {
                 <div style={{ animation: 'fadeSlideIn 0.3s ease' }}>
                   <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 16, padding: 28, marginBottom: 16 }}>
                     <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 20, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>12-Month Rolling Window Comparison</div>
-                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <div className="rw-cols" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                       <div style={{ flex: 1, textAlign: 'center', padding: 20, borderRadius: 12, background: 'rgba(148,163,184,0.04)' }}>
                         <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 }}>Previous 12 months</div>
                         <div style={{ fontSize: 36, fontWeight: 800, color: '#94a3b8' }}>{Math.round(traj.tdPrevious).toLocaleString()}</div>
@@ -918,7 +932,7 @@ export default function TrustDebtApp() {
                           <SeverityBar counts={{ CRITICAL: traj.previousWindow.filter(c => c.severity === 'CRITICAL').length, HIGH: traj.previousWindow.filter(c => c.severity === 'HIGH').length, MEDIUM: traj.previousWindow.filter(c => c.severity === 'MEDIUM').length, LOW: traj.previousWindow.filter(c => c.severity === 'LOW').length, NONE: traj.previousWindow.filter(c => c.severity === 'NONE').length }} total={traj.previousWindow.length} />
                         </div>
                       </div>
-                      <div style={{ flexShrink: 0, textAlign: 'center' }}>
+                      <div className="rw-divider" style={{ flexShrink: 0, textAlign: 'center' }}>
                         <TrendIndicator delta={traj.delta} />
                         <div style={{ fontSize: 18, fontWeight: 800, color: '#818cf8', marginTop: 8, fontFamily: "'JetBrains Mono', monospace" }}>Δ {traj.delta.toFixed(2)}</div>
                       </div>
