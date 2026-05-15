@@ -561,6 +561,7 @@ export default function TrustDebtApp() {
   const [searchHistory, setSearchHistory] = useState<HistoryEntry[]>([])
   const [viewMode, setViewMode] = useState('trajectory')
   const [currentSlug, setCurrentSlug] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -734,16 +735,30 @@ export default function TrustDebtApp() {
       <div style={{ minHeight: '100vh', background: '#0b0f1a', color: '#e2e8f0', fontFamily: "'Space Grotesk', sans-serif", position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', opacity: 0.03, backgroundImage: `linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
 
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', position: 'relative' }}>
-          {/* Nav */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 24 }}>
-            <a href="/trust/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', padding: '5px 14px', borderRadius: 20 }}>
-              ◆ Calculator
-            </a>
-            <a href="/trust/vs/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'transparent', border: '1px solid rgba(148,163,184,0.15)', padding: '5px 14px', borderRadius: 20, transition: 'all 0.15s' }}>
-              ⚔ Compare
-            </a>
-          </div>
+        <header className="site-header">
+          <a href="/" className="site-logo" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src="/images/fake-bobby-logo.png" alt="Fake Bobby" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 0 4px #ff174460)' }} />
+            Fake Healthcare Experts
+          </a>
+          <nav>
+            <ul className="nav-links">
+              <li><a href="/trust/" style={{ color: '#818cf8', fontWeight: 700 }}>◆ Calculator</a></li>
+              <li><a href="/trust/vs/">⚔ Compare</a></li>
+            </ul>
+          </nav>
+          <button className="hamburger" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle menu">
+            <span /><span /><span />
+          </button>
+        </header>
+        <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
+          <ul>
+            <li><a href="/" onClick={() => setMenuOpen(false)}>← Home</a></li>
+            <li><a href="/trust/" onClick={() => setMenuOpen(false)} style={{ color: '#818cf8' }}>◆ Calculator</a></li>
+            <li><a href="/trust/vs/" onClick={() => setMenuOpen(false)}>⚔ Compare</a></li>
+          </ul>
+        </div>
+
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '88px 20px 40px', position: 'relative' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 8, padding: '6px 16px', marginBottom: 20, fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: '#818cf8', fontFamily: "'JetBrains Mono', monospace" }}>
