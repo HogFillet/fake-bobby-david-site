@@ -445,6 +445,17 @@ function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')
 }
 
+// Filter CVEs to those where all query words appear as whole words in the description.
+// Prevents "Epic" from matching Epicor, EpicGames, etc.
+// Falls back to the unfiltered set if filtering would remove everything (graceful degradation).
+function filterByVendorMatch(cves: CVE[], query: string): CVE[] {
+  const words = query.trim().split(/\s+/).filter(Boolean)
+  if (!words.length) return cves
+  const patterns = words.map(w => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'))
+  const filtered = cves.filter(c => patterns.every(re => re.test(c.description || '')))
+  return filtered.length > 0 ? filtered : cves
+}
+
 const GRADE_COLOR: Record<string, string> = {
   'A+': '#00c853', A: '#00c853', B: '#64dd17', C: '#ffc400', D: '#ff6d00', F: '#ff1744',
 }
@@ -650,17 +661,20 @@ export default function TrustDebtApp() {
         return
       }
 
-      const parsed: CVE[] = rawCves
-        .filter((c) => c.id && c.severity)
-        .map((c) => ({
-          id: c.id, published: c.published || `${startYear}-06-01`,
-          severity: (c.severity || 'NONE').toUpperCase(),
-          score: typeof c.score === 'number' ? c.score : 0,
-          description: c.description || 'No description available',
-          kev: c.kev === true,
-          epss: typeof c.epss === 'number' ? c.epss : undefined,
-          epssPercentile: typeof c.epssPercentile === 'number' ? c.epssPercentile : undefined,
-        }))
+      const parsed: CVE[] = filterByVendorMatch(
+        rawCves
+          .filter((c) => c.id && c.severity)
+          .map((c) => ({
+            id: c.id, published: c.published || `${startYear}-06-01`,
+            severity: (c.severity || 'NONE').toUpperCase(),
+            score: typeof c.score === 'number' ? c.score : 0,
+            description: c.description || 'No description available',
+            kev: c.kev === true,
+            epss: typeof c.epss === 'number' ? c.epss : undefined,
+            epssPercentile: typeof c.epssPercentile === 'number' ? c.epssPercentile : undefined,
+          })),
+        searchQuery.trim()
+      )
 
       const withDebt = calculateTrustDebt(parsed)
       setCves(withDebt)
