@@ -116,7 +116,6 @@ function MetricRow({
 
 function VSPageInner() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [stats, setStats] = useState<{ count?: number; median?: number; min?: number; max?: number } | null>(null)
   const [pairA, setPairA] = useState<LeaderboardEntry | null>(null)
   const [pairB, setPairB] = useState<LeaderboardEntry | null>(null)
   const [dataA, setDataA] = useState<CompanyDetail | null>(null)
@@ -169,10 +168,6 @@ function VSPageInner() {
           pickNewMatchup(board)
         }
       })
-      .catch(() => {})
-    fetch(`${TRUST_DEBT_API}/api/stats`)
-      .then(r => r.json())
-      .then(d => setStats(d?.latest ?? null))
       .catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -269,13 +264,6 @@ function VSPageInner() {
   const gapA = percA && gradeA && (gradeA === 'F' || gradeA === 'D')
   const gapB = percB && gradeB && (gradeB === 'F' || gradeB === 'D')
 
-  const sorted = [...leaderboard].sort((a, b) => a.trajectory - b.trajectory)
-  const best = sorted[0]
-  const worst = sorted[sorted.length - 1]
-  const trustGapCompanies = leaderboard.filter(c => {
-    const p = PERCEIVED_TRUST[c.slug]
-    return p && (p.level === 'Very High' || p.level === 'High') && (c.grade === 'F' || c.grade === 'D')
-  })
 
   return (
     <>
@@ -527,65 +515,6 @@ function VSPageInner() {
             </div>
           )}
 
-          {/* Insights panel — always visible */}
-          <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: '20px 24px', marginBottom: 24 }}>
-            <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, fontFamily: "'JetBrains Mono', monospace", marginBottom: 16 }}>Leaderboard Insights</div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: trustGapCompanies.length > 0 ? 20 : 0 }}>
-              {[
-                { label: 'Most Trusted', value: best?.name ?? '—', sub: `Grade ${best?.grade ?? '—'}`, color: GRADE_COLOR[best?.grade ?? ''] ?? '#64748b' },
-                { label: 'Least Trusted', value: worst?.name ?? '—', sub: `Grade ${worst?.grade ?? '—'}`, color: GRADE_COLOR[worst?.grade ?? ''] ?? '#64748b' },
-                { label: 'Median TT Score', value: stats?.median != null ? stats.median.toLocaleString() : '—', sub: `${stats?.count ?? 0} companies`, color: '#818cf8' },
-              ].map(({ label, value, sub, color }) => (
-                <div key={label} style={{ background: 'rgba(148,163,184,0.03)', borderRadius: 8, padding: '14px 16px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{label}</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color }}>{value}</div>
-                  <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>{sub}</div>
-                </div>
-              ))}
-            </div>
-
-            {trustGapCompanies.length > 0 && (
-              <>
-                <div style={{ fontSize: 10, color: '#ffc400', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                  ⚠ Trust Gap — widely trusted, but their data says otherwise
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {trustGapCompanies.map(c => {
-                    const p = PERCEIVED_TRUST[c.slug]
-                    return (
-                      <div key={c.slug} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,193,0,0.04)', border: '1px solid rgba(255,193,0,0.15)', borderRadius: 8, padding: '6px 12px' }}>
-                        <span style={{ fontSize: 11, color: '#94a3b8' }}>{c.name}</span>
-                        <span style={{ fontSize: 9, color: '#ffc400', fontFamily: "'JetBrains Mono', monospace" }}>{p?.reason}</span>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: GRADE_COLOR[c.grade], background: `${GRADE_COLOR[c.grade]}15`, padding: '1px 6px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace" }}>{c.grade}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Full ranked leaderboard */}
-          {leaderboard.length > 0 && (
-            <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: '20px 24px' }}>
-              <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, fontFamily: "'JetBrains Mono', monospace", marginBottom: 14 }}>All Tracked Companies</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 54px 100px 60px', gap: 8, padding: '0 0 8px', borderBottom: '1px solid rgba(148,163,184,0.08)', marginBottom: 4 }}>
-                {['#', 'Company', 'Grade', 'TT Score', 'Pct'].map((h, i) => (
-                  <span key={i} style={{ fontSize: 9, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 0.8, textAlign: i >= 2 ? 'right' : 'left' }}>{h}</span>
-                ))}
-              </div>
-              {sorted.map((c, i) => (
-                <div key={c.slug} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 54px 100px 60px', gap: 8, padding: '8px 0', borderBottom: '1px solid rgba(148,163,184,0.04)', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: '#334155', fontFamily: "'JetBrains Mono', monospace" }}>#{i + 1}</span>
-                  <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{c.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: GRADE_COLOR[c.grade] ?? '#64748b', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>{c.grade}</span>
-                  <span style={{ fontSize: 11, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>{c.trajectory.toLocaleString()}</span>
-                  <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>{c.percentileRank != null ? `p${c.percentileRank}` : '—'}</span>
-                </div>
-              ))}
-            </div>
-          )}
 
         </div>
       </div>
