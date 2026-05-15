@@ -219,31 +219,36 @@ export default function VSPage() {
 
           {/* Company selectors */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 56px 1fr', gap: 12, marginBottom: 32, alignItems: 'end' }}>
-            {(['a', 'b'] as const).map((side) => {
-              const slug = side === 'a' ? slugA : slugB
-              const other = side === 'a' ? slugB : slugA
-              const setter = side === 'a' ? setSlugA : setSlugB
-              return (
-                <div key={side}>
-                  <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                    Company {side.toUpperCase()}
-                  </div>
-                  <select
-                    value={slug}
-                    onChange={e => setter(e.target.value)}
-                    style={{ width: '100%', height: 48, borderRadius: 10, border: `1px solid ${slug ? 'rgba(99,102,241,0.3)' : 'rgba(148,163,184,0.15)'}`, background: 'rgba(15,23,42,0.8)', color: slug ? '#e2e8f0' : '#64748b', fontSize: 14, padding: '0 14px', fontFamily: "'Space Grotesk', sans-serif", cursor: 'pointer', outline: 'none' }}
-                  >
-                    <option value="">Select company...</option>
-                    {leaderboard.map(c => (
-                      <option key={c.slug} value={c.slug} disabled={c.slug === other}>
-                        {c.name} — Grade {c.grade}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )
-            })}
+            {/* Company A */}
+            <div>
+              <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Company A</div>
+              <select
+                value={slugA}
+                onChange={e => setSlugA(e.target.value)}
+                style={{ width: '100%', height: 48, borderRadius: 10, border: `1px solid ${slugA ? 'rgba(99,102,241,0.3)' : 'rgba(148,163,184,0.15)'}`, background: 'rgba(15,23,42,0.8)', color: slugA ? '#e2e8f0' : '#64748b', fontSize: 14, padding: '0 14px', fontFamily: "'Space Grotesk', sans-serif", cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="">Select company...</option>
+                {leaderboard.map(c => (
+                  <option key={c.slug} value={c.slug} disabled={c.slug === slugB}>{c.name} — Grade {c.grade}</option>
+                ))}
+              </select>
+            </div>
+            {/* VS divider */}
             <div style={{ textAlign: 'center', fontSize: 15, fontWeight: 800, color: '#334155', fontFamily: "'JetBrains Mono', monospace", paddingBottom: 12 }}>VS</div>
+            {/* Company B */}
+            <div>
+              <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Company B</div>
+              <select
+                value={slugB}
+                onChange={e => setSlugB(e.target.value)}
+                style={{ width: '100%', height: 48, borderRadius: 10, border: `1px solid ${slugB ? 'rgba(99,102,241,0.3)' : 'rgba(148,163,184,0.15)'}`, background: 'rgba(15,23,42,0.8)', color: slugB ? '#e2e8f0' : '#64748b', fontSize: 14, padding: '0 14px', fontFamily: "'Space Grotesk', sans-serif", cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="">Select company...</option>
+                {leaderboard.map(c => (
+                  <option key={c.slug} value={c.slug} disabled={c.slug === slugA}>{c.name} — Grade {c.grade}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Loading indicator */}
