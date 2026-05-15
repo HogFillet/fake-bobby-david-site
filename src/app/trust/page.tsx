@@ -735,6 +735,15 @@ export default function TrustDebtApp() {
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', opacity: 0.03, backgroundImage: `linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', position: 'relative' }}>
+          {/* Nav */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 24 }}>
+            <a href="/trust/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', padding: '5px 14px', borderRadius: 20 }}>
+              ◆ Calculator
+            </a>
+            <a href="/trust/vs/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'transparent', border: '1px solid rgba(148,163,184,0.15)', padding: '5px 14px', borderRadius: 20, transition: 'all 0.15s' }}>
+              ⚔ Compare
+            </a>
+          </div>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 8, padding: '6px 16px', marginBottom: 20, fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: '#818cf8', fontFamily: "'JetBrains Mono', monospace" }}>

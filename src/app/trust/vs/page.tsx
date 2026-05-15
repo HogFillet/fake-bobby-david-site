@@ -204,10 +204,15 @@ function VSPageInner() {
 
         <div style={{ maxWidth: 840, margin: '0 auto', padding: '40px 20px', position: 'relative' }}>
 
-          {/* Back link */}
-          <Link href="/trust" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', marginBottom: 32, transition: 'color 0.15s' }}>
-            ← Trust Debt
-          </Link>
+          {/* Nav */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 24 }}>
+            <Link href="/trust/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, color: '#64748b', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'transparent', border: '1px solid rgba(148,163,184,0.15)', padding: '5px 14px', borderRadius: 20, transition: 'all 0.15s' }}>
+              ◆ Calculator
+            </Link>
+            <Link href="/trust/vs/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', padding: '5px 14px', borderRadius: 20 }}>
+              ⚔ Compare
+            </Link>
+          </div>
 
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
