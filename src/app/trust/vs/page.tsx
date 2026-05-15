@@ -380,12 +380,10 @@ function VSPageInner() {
                         <div key={side} style={{ background: isWinner ? 'rgba(99,102,241,0.07)' : 'rgba(15,23,42,0.8)', border: `1px solid ${isWinner ? 'rgba(99,102,241,0.3)' : 'rgba(148,163,184,0.08)'}`, borderRadius: 14, padding: 20, position: 'relative' }}>
                           {isWinner && <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: '#6366f1', color: '#fff', fontSize: 9, fontWeight: 700, padding: '3px 12px', borderRadius: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, whiteSpace: 'nowrap' }}>DATA SAYS TRUST MORE</div>}
                           {isMyPick && <div style={{ position: 'absolute', top: -10, right: 16, background: '#334155', color: '#818cf8', fontSize: 9, fontWeight: 700, padding: '3px 10px', borderRadius: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, whiteSpace: 'nowrap' }}>YOUR PICK</div>}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 14, textAlign: 'center' }}>
                             <GradeBadge grade={grade ?? '?'} size={48} />
-                            <div>
-                              <div style={{ fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{pair.name}</div>
-                              <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>{rank != null ? `#${rank} of ${leaderboard.length}` : `${leaderboard.length} tracked`}</div>
-                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{pair.name}</div>
+                            <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{rank != null ? `#${rank} of ${leaderboard.length}` : `${leaderboard.length} tracked`}</div>
                           </div>
                           <div style={{ fontSize: 30, fontWeight: 800, color: '#e2e8f0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", marginBottom: 3 }}>{(tt ?? 0).toLocaleString()}</div>
                           <div style={{ fontSize: 9, color: '#334155', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12 }}>Trust Trajectory</div>
