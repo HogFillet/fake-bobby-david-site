@@ -216,6 +216,7 @@ nav .nav-links a:hover {
 
 .hero-content {
   max-width: 760px;
+  position: relative;
   z-index: 1;
 }
 
