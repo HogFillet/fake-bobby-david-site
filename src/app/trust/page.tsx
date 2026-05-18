@@ -573,7 +573,7 @@ export default function TrustDebtApp() {
   const [viewMode, setViewMode] = useState('trajectory')
   const [currentSlug, setCurrentSlug] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [nvdCount, setNvdCount] = useState<number | null>(null)
+  const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number } | null>(null)
 
   useEffect(() => {
     try {
@@ -585,7 +585,7 @@ export default function TrustDebtApp() {
   useEffect(() => {
     fetch(`${TRUST_DEBT_API}/api/nvd/count`)
       .then(r => r.json())
-      .then(d => { if (d.count) setNvdCount(d.count) })
+      .then(d => { if (d.cveCount != null) setDbCounts(d) })
       .catch(() => {})
   }, [])
 
@@ -832,9 +832,9 @@ export default function TrustDebtApp() {
                 </button>
               ))}
             </div>
-            {nvdCount !== null && (
+            {dbCounts !== null && (
               <p style={{ margin: '12px 0 0', fontSize: 11, color: '#334155', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, textAlign: 'right' }}>
-                POWERED BY NIST NVD · LIVE COUNT {nvdCount.toLocaleString()} CVES INDEXED
+                POWERED BY NIST NVD · {dbCounts.cveCount.toLocaleString()} CVES · {dbCounts.kevCount.toLocaleString()} KEV · {dbCounts.epssCount.toLocaleString()} EPSS
               </p>
             )}
           </div>
