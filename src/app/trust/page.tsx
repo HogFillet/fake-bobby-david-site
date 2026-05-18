@@ -834,7 +834,7 @@ export default function TrustDebtApp() {
             </div>
             {dbCounts !== null && (
               <p style={{ margin: '12px 0 0', fontSize: 11, color: '#334155', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, textAlign: 'right' }}>
-                POWERED BY NIST NVD · {dbCounts.cveCount.toLocaleString()} CVES · {dbCounts.kevCount.toLocaleString()} KEV · {dbCounts.epssCount.toLocaleString()} EPSS
+                NIST NVD · {dbCounts.cveCount.toLocaleString()} CVES&nbsp;&nbsp;·&nbsp;&nbsp;CISA · {dbCounts.kevCount.toLocaleString()} KEV&nbsp;&nbsp;·&nbsp;&nbsp;FIRST · {dbCounts.epssCount.toLocaleString()} EPSS
               </p>
             )}
           </div>
