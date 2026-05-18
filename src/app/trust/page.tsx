@@ -688,14 +688,16 @@ export default function TrustDebtApp() {
       setCves(withDebt)
       setTotalResults(parsed.length)
 
-      // Auto-track companies discovered via live query.
-      // Threshold of 10 CVEs filters out one-off/product-level searches while still catching real vendors.
+      // Auto-track companies discovered via live query, then immediately sync so they
+      // appear in the leaderboard/VS page without waiting for the nightly cron.
       if (parsed.length >= 10 && !cachedRes.ok) {
         fetch(`${TRUST_DEBT_API}/api/companies`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: searchQuery.trim(), keywords: [searchQuery.trim()], yearsBack: 3 }),
-        }).catch(() => {})
+        })
+          .then(() => fetch(`${TRUST_DEBT_API}/api/sync/${slug}`, { method: 'POST' }))
+          .catch(() => {})
       }
       const t = withDebt.length > 0 ? calculateTrajectory(withDebt) : null
       const trajScore = t ? t.trajectory : 0
