@@ -577,6 +577,7 @@ export default function TrustDebtApp() {
   const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number; totalCompanies: number } | null>(null)
   const [sbdpSlugs, setSbdpSlugs] = useState<string[]>([])
   const [currentBreachCount, setCurrentBreachCount] = useState(0)
+  const [currentBFactor, setCurrentBFactor] = useState(1.0)
 
   useEffect(() => {
     try {
@@ -655,6 +656,7 @@ export default function TrustDebtApp() {
         const cached = await cachedRes.json()
         const cachedCves = (cached.cves || []) as CVE[]
         setCurrentBreachCount(cached.company?.breachCount ?? 0)
+        setCurrentBFactor(cached.company?.bFactor ?? 1.0)
         if (cachedCves.length > 0) {
           rawCves = cachedCves
           setDataSource('cached')
@@ -664,6 +666,7 @@ export default function TrustDebtApp() {
         }
       } else {
         setCurrentBreachCount(0)
+        setCurrentBFactor(1.0)
         rawCves = await useLive()
       }
 
@@ -932,7 +935,7 @@ export default function TrustDebtApp() {
                       <GradeBadge grade={grade} size={56} />
                       <div style={{ fontSize: 52, fontWeight: 800, color: '#e2e8f0' }}><AnimatedNumber value={Math.round(trajectoryScore)} /></div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", marginTop: 12 }}>TT = TD × Δ × R × K × P</div>
+                    <div style={{ fontSize: 12, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", marginTop: 12 }}>TT = TD × Δ × R × K × P × B</div>
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
                       <span style={{ fontSize: 12, color: '#475569' }}>{cves.length} CVEs analyzed</span>
                       {traj && traj.kevCount > 0 && (
@@ -958,6 +961,7 @@ export default function TrustDebtApp() {
                       { sym: 'R', name: 'Recurrence', source: `${traj.critHighCurrent} crit/high`, weight: `${traj.recurrence.toFixed(2)}×`, color: traj.recurrence > 1.5 ? '#ff6d00' : '#e2e8f0', status: null, onClick: () => setViewMode('recurrence') },
                       { sym: 'K', name: 'KEV Exploited', source: `${traj.kevCount} CISA KEV`, weight: `${traj.kFactor.toFixed(2)}×`, color: traj.kevCount > 0 ? '#ff1744' : '#e2e8f0', status: 'NEW', onClick: null },
                       { sym: 'P', name: 'EPSS × Percentile', source: `${traj.epssHighCount} high-risk (>10%)`, weight: `${traj.pFactor.toFixed(2)}×`, color: traj.pFactor > 1.5 ? '#ff6d00' : traj.pFactor > 1.1 ? '#ffc400' : '#e2e8f0', status: 'NEW', onClick: null },
+                      { sym: 'B', name: 'Breach History', source: currentBreachCount > 0 ? `${currentBreachCount} HIBP breach${currentBreachCount > 1 ? 'es' : ''}` : 'no known breaches', weight: `${currentBFactor.toFixed(2)}×`, color: currentBFactor > 1.3 ? '#ff6d00' : currentBFactor > 1.05 ? '#ffc400' : '#e2e8f0', status: 'NEW', onClick: null },
                     ].map((row) => (
                       <div key={row.sym} onClick={row.onClick || undefined} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 1fr auto 52px', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.05)', cursor: row.onClick ? 'pointer' : 'default', transition: 'background 0.15s' }}>
                         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 800, color: row.color }}>{row.sym}</span>
