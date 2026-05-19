@@ -1297,7 +1297,7 @@ export default function TrustDebtApp() {
                           <span style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>{c.name}</span>
                           <span style={{ fontSize: 13, fontWeight: 800, color: gc, flexShrink: 0, marginLeft: 6 }}>{c.grade}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
                           {isSBDP(c.slug) && <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '1px 5px', borderRadius: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, whiteSpace: 'nowrap' }}>CISA SBDP ✓</span>}
                         </div>
@@ -1309,11 +1309,40 @@ export default function TrustDebtApp() {
               {leaderboard.length === 0 && searchHistory.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
                   <p style={{ color: '#64748b', fontSize: 16, margin: 0 }}>Search a company to see their Trust Debt score</p>
-                  <p style={{ color: '#475569', fontSize: 13, marginTop: 8 }}>Powered by NIST NVD data</p>
                 </div>
               )}
             </div>
           )}
+        </div>
+
+        {/* Data source footnotes */}
+        <div style={{ maxWidth: 900, margin: '40px auto 0', padding: '24px 20px 60px', borderTop: '1px solid rgba(148,163,184,0.08)' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#334155', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>Data Sources &amp; Disclaimers</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+            {[
+              {
+                label: 'NIST NVD — CVEs',
+                body: 'Vulnerability data sourced from the National Institute of Standards and Technology National Vulnerability Database (NIST NVD). CVE counts and severity scores reflect publicly disclosed vulnerabilities. Trust Debt scores are a derived metric and not endorsed by NIST.',
+              },
+              {
+                label: 'CISA KEV',
+                body: 'Known Exploited Vulnerabilities catalog maintained by the Cybersecurity and Infrastructure Security Agency (CISA). KEV entries indicate vulnerabilities with confirmed active exploitation in the wild. Inclusion increases Trust Debt weighting.',
+              },
+              {
+                label: 'FIRST EPSS',
+                body: 'Exploit Prediction Scoring System (EPSS) scores provided by the Forum of Incident Response and Security Teams (FIRST). EPSS estimates the probability a CVE will be exploited within 30 days. Higher EPSS scores amplify Trust Debt trajectory.',
+              },
+              {
+                label: 'CISA Secure by Design Pledge',
+                body: 'The CISA SBDP ✓ badge indicates a software manufacturer has voluntarily signed the CISA Secure by Design pledge, committing to measurable progress on memory-safe languages, default security settings, and reducing CVE classes. Signatory list sourced from cisa.gov and refreshed monthly. Signing the pledge does not guarantee security.',
+              },
+            ].map(({ label, body }) => (
+              <div key={label} style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(15,23,42,0.4)', border: '1px solid rgba(148,163,184,0.06)' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 8px' }}>{label}</p>
+                <p style={{ fontSize: 11, color: '#334155', lineHeight: 1.6, margin: 0 }}>{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </>
