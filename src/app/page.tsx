@@ -215,7 +215,7 @@ export default function HomePage() {
                   img: '/images/fake-david.png',
                   alt: 'Fake David Statue',
                   name: 'Fake David',
-                  desc: 'Our stone-cold consultant. David has been in the healthcare space since 1504, which gives him a uniquely calcified perspective on modern medicine. His treatment plans have been peer-reviewed by pigeons.',
+                  desc: 'Our most distinguished decoy. Fake David has been in the healthcare space since 1504. He\'ll try to trick you with \'rn\' instead of a real \'m\' in his messages. Visual tricks and centuries of persistence are his tools to wear you down. Always sounds important, always insists on discretion, never the real deal — do not comply.',
                 },
                 {
                   img: '/images/fake-bobby.png',
