@@ -227,7 +227,7 @@ export default function HomePage() {
                   img: '/images/fake-tommy.png',
                   alt: 'Fake Tommy Puppet',
                   name: 'Fake Tommy',
-                  desc: 'Our newest team member. Tommy claims to hold a higher education degree, which he definitely did not print at home. His published research includes "The Effect of Cookies on Everything" and his treatment philosophy is simple: if it hurts, put ice on it; if ice doesn\'t work, ask Mom. Currently accepting new patients. Juice box not included.',
+                  desc: 'Our newest hire and the rug rat of our imposters. Fake Tommy\'s diploma is taped to the fridge, his invoices are written in crayon, emails read like gibberish. Always sends a link, looks like a scam from a two-year-old, never the real deal — do not click.',
                 },
               ].map((char, i) => (
                 <div key={char.name} className={`character-card reveal${i > 0 ? ` reveal-delay-${i}` : ''}`}>
