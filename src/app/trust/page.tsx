@@ -574,6 +574,7 @@ export default function TrustDebtApp() {
   const [currentSlug, setCurrentSlug] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number; totalCompanies: number } | null>(null)
+  const [sbdpSlugs, setSbdpSlugs] = useState<string[]>([])
 
   useEffect(() => {
     try {
@@ -586,6 +587,10 @@ export default function TrustDebtApp() {
     fetch(`${TRUST_DEBT_API}/api/nvd/count`)
       .then(r => r.json())
       .then(d => { if (d.cveCount != null) setDbCounts(d) })
+      .catch(() => {})
+    fetch(`${TRUST_DEBT_API}/api/cisa/sbdp`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.slugs)) setSbdpSlugs(d.slugs) })
       .catch(() => {})
   }, [])
 
@@ -714,6 +719,8 @@ export default function TrustDebtApp() {
     e?.preventDefault?.()
     fetchCVEs(query, yearsBack)
   }
+
+  const isSBDP = (slug: string) => sbdpSlugs.some(s => s === slug || s.startsWith(slug + '-') || slug.startsWith(s + '-'))
 
   const severityCounts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0 }
   cves.forEach((c) => severityCounts[c.severity]++)
@@ -920,13 +927,14 @@ export default function TrustDebtApp() {
                       <div style={{ fontSize: 52, fontWeight: 800, color: '#e2e8f0' }}><AnimatedNumber value={Math.round(trajectoryScore)} /></div>
                     </div>
                     <div style={{ fontSize: 12, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", marginTop: 12 }}>TT = TD × Δ × R × K × P</div>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
                       <span style={{ fontSize: 12, color: '#475569' }}>{cves.length} CVEs analyzed</span>
                       {traj && traj.kevCount > 0 && (
                         <span style={{ fontSize: 11, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.1)', padding: '2px 10px', borderRadius: 20, border: '1px solid rgba(255,23,68,0.3)', fontFamily: "'JetBrains Mono', monospace" }}>
                           {traj.kevCount} KEV {traj.kevCount === 1 ? 'hit' : 'hits'}
                         </span>
                       )}
+                      {isSBDP(currentSlug) && <span style={{ fontSize: 10, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>CISA SBDP ✓</span>}
                     </div>
                   </div>
 
@@ -1289,7 +1297,10 @@ export default function TrustDebtApp() {
                           <span style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2 }}>{c.name}</span>
                           <span style={{ fontSize: 13, fontWeight: 800, color: gc, flexShrink: 0, marginLeft: 6 }}>{c.grade}</span>
                         </div>
-                        <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
+                          {isSBDP(c.slug) && <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '1px 5px', borderRadius: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, whiteSpace: 'nowrap' }}>CISA SBDP ✓</span>}
+                        </div>
                       </button>
                     )
                   })}
