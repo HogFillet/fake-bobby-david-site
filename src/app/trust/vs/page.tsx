@@ -30,6 +30,7 @@ interface LeaderboardEntry {
   trajectory: number
   cveCount: number
   percentileRank?: number | null
+  breachCount?: number
 }
 
 interface Snapshot {
@@ -436,6 +437,7 @@ function VSPageInner() {
                             <div style={{ fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{pair.name}</div>
                             <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{rank != null ? `#${rank} of ${leaderboard.length}` : `${leaderboard.length} tracked`}</div>
                             {isSBDP(slug) && <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>CISA SBDP ✓</span>}
+                            {(pair.breachCount ?? 0) > 0 && <span style={{ fontSize: 9, fontWeight: 700, color: '#f97316', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>HIBP{(pair.breachCount ?? 0) > 1 ? ` ×${pair.breachCount}` : ''}</span>}
                           </div>
                           <div style={{ fontSize: 30, fontWeight: 800, color: '#e2e8f0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", marginBottom: 3 }}>{(tt ?? 0).toLocaleString()}</div>
                           <div style={{ fontSize: 9, color: '#334155', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12 }}>Trust Trajectory</div>

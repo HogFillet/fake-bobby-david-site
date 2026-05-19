@@ -439,6 +439,7 @@ interface LeaderboardEntry {
   trajectory: number
   cveCount: number
   percentileRank?: number | null
+  breachCount?: number
 }
 
 function toSlug(name: string) {
@@ -575,6 +576,7 @@ export default function TrustDebtApp() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number; totalCompanies: number } | null>(null)
   const [sbdpSlugs, setSbdpSlugs] = useState<string[]>([])
+  const [currentBreachCount, setCurrentBreachCount] = useState(0)
 
   useEffect(() => {
     try {
@@ -652,6 +654,7 @@ export default function TrustDebtApp() {
       if (cachedRes.ok) {
         const cached = await cachedRes.json()
         const cachedCves = (cached.cves || []) as CVE[]
+        setCurrentBreachCount(cached.company?.breachCount ?? 0)
         if (cachedCves.length > 0) {
           rawCves = cachedCves
           setDataSource('cached')
@@ -660,6 +663,7 @@ export default function TrustDebtApp() {
           rawCves = await useLive()
         }
       } else {
+        setCurrentBreachCount(0)
         rawCves = await useLive()
       }
 
@@ -937,6 +941,7 @@ export default function TrustDebtApp() {
                         </span>
                       )}
                       {isSBDP(currentSlug) && <span style={{ fontSize: 10, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>CISA SBDP ✓</span>}
+                      {currentBreachCount > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#f97316', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>HIBP{currentBreachCount > 1 ? ` ×${currentBreachCount}` : ''}</span>}
                     </div>
                   </div>
 
@@ -1302,6 +1307,7 @@ export default function TrustDebtApp() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: 10, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>{c.cveCount} CVEs</span>
                           {isSBDP(c.slug) && <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '1px 5px', borderRadius: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, whiteSpace: 'nowrap' }}>CISA SBDP ✓</span>}
+                          {(c.breachCount ?? 0) > 0 && <span style={{ fontSize: 9, fontWeight: 700, color: '#f97316', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)', padding: '1px 5px', borderRadius: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, whiteSpace: 'nowrap' }}>HIBP{(c.breachCount ?? 0) > 1 ? ` ×${c.breachCount}` : ''}</span>}
                         </div>
                       </button>
                     )
