@@ -221,7 +221,7 @@ export default function HomePage() {
                   img: '/images/fake-bobby.png',
                   alt: 'Fake Bobby Cartoon',
                   name: 'Fake Bobby',
-                  desc: 'Not a real doctor, but extremely committed to the bit. His medical license was issued by a website he built himself, and his stethoscope is drawn on in permanent marker. Has never lost a patient — mostly because he has never had one.',
+                  desc: 'Our flagship fraud and the original healthcare phisherman. Not the oldest in the rotation, just the most prolific. Fake Bobby has never lost a patient — mostly because he has never had one, mostly because he is not real. Always in a hurry, always needs money, never the real deal. Do not respond.',
                 },
                 {
                   img: '/images/fake-tommy.png',
