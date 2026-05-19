@@ -283,6 +283,59 @@ function VSPageInner() {
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
         * { box-sizing: border-box; }
         select option { background: #1e293b; }
+
+        .vs-vote-grid {
+          display: grid;
+          grid-template-columns: 1fr 48px 1fr;
+          gap: 16px;
+          align-items: stretch;
+        }
+        .vs-vote-btn {
+          background: rgba(99,102,241,0.05);
+          border: 1px solid rgba(99,102,241,0.18);
+          border-radius: 16px;
+          padding: 36px 24px;
+          cursor: pointer;
+          color: #e2e8f0;
+          transition: all 0.2s;
+          text-align: center;
+          font-family: 'Space Grotesk', sans-serif;
+          outline: none;
+          display: block;
+          width: 100%;
+        }
+        .vs-vote-btn:hover {
+          background: rgba(99,102,241,0.12);
+          border-color: rgba(99,102,241,0.4);
+          transform: translateY(-2px);
+        }
+        .vs-divider {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 800;
+          color: #1e293b;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .vs-reveal-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-bottom: 16px;
+        }
+        @media (max-width: 540px) {
+          .vs-vote-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .vs-vote-btn {
+            padding: 28px 20px;
+          }
+          .vs-reveal-grid {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: '#0b0f1a', color: '#e2e8f0', fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -336,26 +389,14 @@ function VSPageInner() {
               <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center', marginBottom: 28 }}>
                 Random matchup · {leaderboard.length} companies tracked
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 48px 1fr', gap: 16, alignItems: 'stretch' }}>
-                <button
-                  onClick={() => submitVote('a')}
-                  disabled={voteState === 'submitting'}
-                  style={{ background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 16, padding: '36px 24px', cursor: voteState === 'submitting' ? 'wait' : 'pointer', color: '#e2e8f0', transition: 'all 0.2s', textAlign: 'center', fontFamily: "'Space Grotesk', sans-serif", outline: 'none', display: 'block', width: '100%' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.12)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.4)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.05)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.18)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
-                >
+              <div className="vs-vote-grid">
+                <button className="vs-vote-btn" onClick={() => submitVote('a')} disabled={voteState === 'submitting'} style={{ cursor: voteState === 'submitting' ? 'wait' : 'pointer' }}>
                   <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>I trust</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: '#c7d2fe', marginBottom: 14, lineHeight: 1.2 }}>{pairA.name}</div>
                   <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace" }}>more with my data →</div>
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#1e293b', fontFamily: "'JetBrains Mono', monospace" }}>VS</div>
-                <button
-                  onClick={() => submitVote('b')}
-                  disabled={voteState === 'submitting'}
-                  style={{ background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 16, padding: '36px 24px', cursor: voteState === 'submitting' ? 'wait' : 'pointer', color: '#e2e8f0', transition: 'all 0.2s', textAlign: 'center', fontFamily: "'Space Grotesk', sans-serif", outline: 'none', display: 'block', width: '100%' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.12)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.4)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.05)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,102,241,0.18)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
-                >
+                <div className="vs-divider">VS</div>
+                <button className="vs-vote-btn" onClick={() => submitVote('b')} disabled={voteState === 'submitting'} style={{ cursor: voteState === 'submitting' ? 'wait' : 'pointer' }}>
                   <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>I trust</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: '#c7d2fe', marginBottom: 14, lineHeight: 1.2 }}>{pairB.name}</div>
                   <div style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace" }}>← more with my data</div>
@@ -379,7 +420,7 @@ function VSPageInner() {
                 <div style={{ textAlign: 'center', color: '#334155', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", padding: '24px 0', animation: 'pulse 1.5s infinite' }}>Fetching comparison data...</div>
               ) : dataA && dataB ? (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+                  <div className="vs-reveal-grid">
                     {([
                       { pair: pairA, data: dataA, tt: ttA, grade: gradeA, kev: kevA, epss: epssA, delta: deltaA, cveCount: cveCountA, rank: rankA, slug: slugA, gap: gapA, perc: percA, side: 'a' as Winner },
                       { pair: pairB, data: dataB, tt: ttB, grade: gradeB, kev: kevB, epss: epssB, delta: deltaB, cveCount: cveCountB, rank: rankB, slug: slugB, gap: gapB, perc: percB, side: 'b' as Winner },
