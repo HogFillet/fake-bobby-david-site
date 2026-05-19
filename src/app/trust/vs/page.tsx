@@ -383,7 +383,7 @@ function VSPageInner() {
                     {([
                       { pair: pairA, data: dataA, tt: ttA, grade: gradeA, kev: kevA, epss: epssA, delta: deltaA, cveCount: cveCountA, rank: rankA, slug: slugA, gap: gapA, perc: percA, side: 'a' as Winner },
                       { pair: pairB, data: dataB, tt: ttB, grade: gradeB, kev: kevB, epss: epssB, delta: deltaB, cveCount: cveCountB, rank: rankB, slug: slugB, gap: gapB, perc: percB, side: 'b' as Winner },
-                    ]).map(({ pair, tt, grade, kev, epss, delta, cveCount, rank, gap, perc, side }) => {
+                    ]).map(({ pair, tt, grade, kev, epss, delta, cveCount, rank, slug, gap, perc, side }) => {
                       const isWinner = verdict === side
                       const isMyPick = myVote === (side === 'a' ? slugA : slugB)
                       return (
