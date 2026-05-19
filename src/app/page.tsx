@@ -4,42 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import SplashOverlay from './components/SplashOverlay'
 
-// ── Firebase analytics (fire-and-forget) ─────────────────────────────────────
-async function initFirebase(setCount: (n: number) => void) {
+const WORKER_API = 'https://trust-debt-api.hogfillet.workers.dev'
+
+// ── Visitor analytics via worker proxy ───────────────────────────────────────
+async function trackVisit(setCount: (n: number) => void) {
   try {
-    const { initializeApp, getApps } = await import('firebase/app')
-    const { getDatabase, ref, runTransaction } = await import('firebase/database')
-
-    const pid = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    const config = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: `${pid}.firebaseapp.com`,
-      databaseURL: `https://${pid}-default-rtdb.firebaseio.com`,
-      projectId: pid,
-      storageBucket: `${pid}.appspot.com`,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    }
-
-    // Avoid double-init in dev HMR
-    const app = getApps().length ? getApps()[0] : initializeApp(config)
-    const db = getDatabase(app)
-    const inc = (path: string) =>
-      runTransaction(ref(db, path), (n) => (n || 0) + 1).catch(() => {})
-
-    // Total visitor count
-    const result = await runTransaction(ref(db, 'visitors/count'), (n) => (n || 0) + 1)
-    setCount(result.snapshot.val() ?? 1)
-
-    // Unique visitors
-    if (!localStorage.getItem('_fbuniq')) {
-      localStorage.setItem('_fbuniq', '1')
-      inc('visitors/unique')
-    }
-
-    inc('pages/home')
-    inc(/Mobi|Android/i.test(navigator.userAgent) ? 'devices/mobile' : 'devices/desktop')
-
+    const unique = !localStorage.getItem('_fbuniq')
+    if (unique) localStorage.setItem('_fbuniq', '1')
+    const device = /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
     const referrer = (() => {
       if (!document.referrer) return 'direct'
       try {
@@ -48,13 +20,19 @@ async function initFirebase(setCount: (n: number) => void) {
         if (h.includes('github')) return 'github'
         if (h.includes('twitter') || h.includes('x.com')) return 'twitter'
         return 'other'
-      } catch {
-        return 'other'
-      }
+      } catch { return 'other' }
     })()
-    inc('referrers/' + referrer)
+    const res = await fetch(`${WORKER_API}/api/visit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 'home', device, referrer, unique }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setCount(data.count)
+    }
   } catch {
-    // Firebase unavailable (env vars not set locally) — silent fail
+    // analytics unavailable — silent fail
   }
 }
 
@@ -87,9 +65,9 @@ export default function HomePage() {
 
   const visitorDisplay = useCountUp(visitorCount, statsVisible)
 
-  // Firebase init on mount
+  // Visitor tracking on mount
   useEffect(() => {
-    initFirebase(setVisitorCount)
+    trackVisit(setVisitorCount)
   }, [])
 
   // Intersection observer for stats counter + reveal animations
@@ -124,14 +102,12 @@ export default function HomePage() {
   }, [])
 
   const handleStoreClick = useCallback(
-    async (product: string) => {
-      try {
-        const { getApps } = await import('firebase/app')
-        const { getDatabase, ref, runTransaction } = await import('firebase/database')
-        if (!getApps().length) return
-        const db = getDatabase(getApps()[0])
-        runTransaction(ref(db, 'store/' + product), (n) => (n || 0) + 1).catch(() => {})
-      } catch {}
+    (product: string) => {
+      fetch(`${WORKER_API}/api/visit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: `store-${product}` }),
+      }).catch(() => {})
     },
     [],
   )
