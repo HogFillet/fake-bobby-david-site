@@ -128,6 +128,7 @@ function VSPageInner() {
   const [vendorVotesA, setVendorVotesA] = useState<{ wins: number; losses: number } | null>(null)
   const [vendorVotesB, setVendorVotesB] = useState<{ wins: number; losses: number } | null>(null)
   const [myVote, setMyVote] = useState<string | null>(null)
+  const [sbdpSlugs, setSbdpSlugs] = useState<string[]>([])
 
   const slugA = pairA?.slug ?? ''
   const slugB = pairB?.slug ?? ''
@@ -157,6 +158,15 @@ function VSPageInner() {
     if (idx2 >= idx1) idx2++
     setPairA(board[idx1]); setPairB(board[idx2])
   }
+
+  useEffect(() => {
+    fetch(`${TRUST_DEBT_API}/api/cisa/sbdp`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.slugs)) setSbdpSlugs(d.slugs) })
+      .catch(() => {})
+  }, [])
+
+  const isSBDP = (slug: string) => sbdpSlugs.some(s => s === slug || s.startsWith(slug + '-') || slug.startsWith(s + '-'))
 
   useEffect(() => {
     fetch(`${TRUST_DEBT_API}/api/leaderboard`)
@@ -384,6 +394,7 @@ function VSPageInner() {
                             <GradeBadge grade={grade ?? '?'} size={48} />
                             <div style={{ fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{pair.name}</div>
                             <div style={{ fontSize: 10, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{rank != null ? `#${rank} of ${leaderboard.length}` : `${leaderboard.length} tracked`}</div>
+                            {isSBDP(slug) && <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.25)', padding: '2px 8px', borderRadius: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>CISA SBDP ✓</span>}
                           </div>
                           <div style={{ fontSize: 30, fontWeight: 800, color: '#e2e8f0', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", marginBottom: 3 }}>{(tt ?? 0).toLocaleString()}</div>
                           <div style={{ fontSize: 9, color: '#334155', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12 }}>Trust Trajectory</div>
