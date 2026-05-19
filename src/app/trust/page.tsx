@@ -573,7 +573,7 @@ export default function TrustDebtApp() {
   const [viewMode, setViewMode] = useState('trajectory')
   const [currentSlug, setCurrentSlug] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number } | null>(null)
+  const [dbCounts, setDbCounts] = useState<{ cveCount: number; kevCount: number; epssCount: number; totalCompanies: number } | null>(null)
 
   useEffect(() => {
     try {
@@ -1257,7 +1257,7 @@ export default function TrustDebtApp() {
                 <div style={{ marginTop: searchHistory.length > 0 ? 32 : 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#cbd5e1' }}>Tracked Companies</span>
-                    <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", background: 'rgba(99,102,241,0.08)', padding: '2px 8px', borderRadius: 4 }}>{leaderboard.length}</span>
+                    <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace", background: 'rgba(99,102,241,0.08)', padding: '2px 8px', borderRadius: 4 }}>{dbCounts?.totalCompanies ?? leaderboard.length}</span>
                     <a href="/trust/vs/" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', padding: '3px 10px', borderRadius: 6, transition: 'all 0.15s' }}>
                       ⚔ Compare
                     </a>
