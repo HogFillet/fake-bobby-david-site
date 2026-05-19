@@ -215,19 +215,19 @@ export default function HomePage() {
                   img: '/images/fake-david.png',
                   alt: 'Fake David Statue',
                   name: 'Fake David',
-                  desc: 'Our marble statue expert on ancient medical practices. He\'s been practicing medicine since the Renaissance, which might explain his outdated advice.',
+                  desc: 'Our stone-cold consultant. David has been in the healthcare space since 1504, which gives him a uniquely calcified perspective on modern medicine. His treatment plans have been peer-reviewed by pigeons.',
                 },
                 {
                   img: '/images/fake-bobby.png',
                   alt: 'Fake Bobby Cartoon',
                   name: 'Fake Bobby',
-                  desc: 'Not a real doctor, but plays one on our website. His medical license is about as authentic as his drawn-on stethoscope.',
+                  desc: 'Not a real doctor, but extremely committed to the bit. His medical license was issued by a website he built himself, and his stethoscope is drawn on in permanent marker. Has never lost a patient — mostly because he has never had one.',
                 },
                 {
                   img: '/images/fake-tommy.png',
                   alt: 'Fake Tommy Puppet',
                   name: 'Fake Tommy',
-                  desc: 'Our newest team member! A puppet who claims to have studied at "Stringology University." His medical advice is controlled by invisible hands (literally).',
+                  desc: 'Our newest team member. Tommy claims to hold a higher education degree, which he definitely did not print at home. His published research includes "The Effect of Cookies on Everything" and his treatment philosophy is simple: if it hurts, put ice on it; if ice doesn\'t work, ask Mom. Currently accepting new patients. Juice box not included.',
                 },
               ].map((char, i) => (
                 <div key={char.name} className={`character-card reveal${i > 0 ? ` reveal-delay-${i}` : ''}`}>
