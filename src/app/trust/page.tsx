@@ -1348,6 +1348,10 @@ export default function TrustDebtApp() {
                 label: 'CISA Secure by Design Pledge',
                 body: 'The CISA SBDP ✓ badge indicates a software manufacturer has voluntarily signed the CISA Secure by Design pledge, committing to measurable progress on memory-safe languages, default security settings, and reducing CVE classes. Signatory list sourced from cisa.gov and refreshed monthly. Signing the pledge does not guarantee security.',
               },
+              {
+                label: 'Have I Been Pwned — Breaches',
+                body: 'Breach data sourced from Have I Been Pwned (HIBP), a public service cataloging confirmed data breaches. The B factor in the Trust Trajectory formula is weighted by breach PwnCount (number of affected accounts) with a 12-month halflife decay — recent breaches carry full weight while older incidents diminish over time. Matching uses company name, domain, and configured aliases to capture parent/subsidiary relationships (e.g. Meta → Facebook). Breach data is informational and does not imply ongoing vulnerability.',
+              },
             ].map(({ label, body }) => (
               <div key={label} style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(15,23,42,0.4)', border: '1px solid rgba(148,163,184,0.06)' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 8px' }}>{label}</p>
