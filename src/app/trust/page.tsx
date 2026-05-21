@@ -1159,7 +1159,6 @@ export default function TrustDebtApp() {
               {/* Trust Velocity View */}
               {viewMode === 'velocity' && traj && (() => {
                 const tv = calculateTrustVelocity(traj.quarters)
-                const filledQ = traj.quarters.filter(q => q.debt > 0)
                 return (
                   <div style={{ animation: 'fadeSlideIn 0.3s ease' }}>
                     <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 16, padding: 28, marginBottom: 16, textAlign: 'center' }}>
@@ -1177,27 +1176,28 @@ export default function TrustDebtApp() {
                       )}
                     </div>
 
-                    {/* Quarter-by-quarter breakdown */}
-                    {filledQ.length >= 2 && tv && (
+                    {/* Quarter-by-quarter breakdown — uses all quarters including empty ones */}
+                    {tv && (
                       <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 12, padding: 20, marginBottom: 16 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#cbd5e1', marginBottom: 16 }}>Quarter-by-Quarter Velocity</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {filledQ.slice(1).map((q, i) => {
-                            const prev = filledQ[i]
-                            const change = prev.debt > 0 ? (q.debt - prev.debt) / prev.debt : 0
+                          {traj.quarters.slice(1).map((q, i) => {
+                            const prev = traj.quarters[i]
+                            const change = prev.debt > 0 ? (q.debt - prev.debt) / prev.debt : q.debt > 0 ? 1.0 : 0
+                            const isEmpty = prev.debt === 0 && q.debt === 0
                             const { grade, color } = velGrade(change)
                             const pct = (change * 100).toFixed(1)
                             const arrow = change < -0.02 ? '↓' : change > 0.02 ? '↑' : '→'
                             return (
-                              <div key={q.label} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px 36px', gap: 12, alignItems: 'center', padding: '10px 14px', background: 'rgba(148,163,184,0.03)', borderRadius: 8 }}>
+                              <div key={q.label} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px 36px', gap: 12, alignItems: 'center', padding: '10px 14px', background: isEmpty ? 'transparent' : 'rgba(148,163,184,0.03)', borderRadius: 8, opacity: isEmpty ? 0.35 : 1 }}>
                                 <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{prev.label} → {q.label}</span>
                                 <div style={{ height: 6, borderRadius: 3, background: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
                                   <div style={{ height: '100%', width: `${Math.min(100, Math.abs(change) * 200)}%`, background: color, borderRadius: 3 }} />
                                 </div>
-                                <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>
-                                  {arrow} {change >= 0 ? '+' : ''}{pct}%
+                                <span style={{ fontSize: 12, fontWeight: 700, color: isEmpty ? '#334155' : color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>
+                                  {isEmpty ? 'no data' : `${arrow} ${change >= 0 ? '+' : ''}${pct}%`}
                                 </span>
-                                <span style={{ fontSize: 13, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>{grade}</span>
+                                <span style={{ fontSize: 13, fontWeight: 800, color: isEmpty ? '#334155' : color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>{isEmpty ? '—' : grade}</span>
                               </div>
                             )
                           })}
