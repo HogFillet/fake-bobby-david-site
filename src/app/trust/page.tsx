@@ -155,16 +155,24 @@ interface TrustVelocity {
   color: string
 }
 
+// Computes QoQ change for quarter i vs i-1.
+// When prev=0 and curr>0, compares against the last non-zero quarter instead of
+// zero (avoids false +100% F grades for companies resuming a normal CVE rate).
+// When both are zero, returns 0 (stable — no new debt either quarter).
+function qoqChange(quarters: Quarter[], i: number): number {
+  const prev = quarters[i - 1].debt
+  const curr = quarters[i].debt
+  if (prev > 0) return (curr - prev) / prev
+  if (curr === 0) return 0
+  for (let j = i - 2; j >= 0; j--) {
+    if (quarters[j].debt > 0) return (curr - quarters[j].debt) / quarters[j].debt
+  }
+  return 0.5  // first non-zero quarter in the window — some new risk, no prior baseline
+}
+
 function calculateTrustVelocity(quarters: Quarter[]): TrustVelocity | null {
   if (quarters.length < 2 || !quarters.some(q => q.debt > 0)) return null
-  const qoq: number[] = []
-  for (let i = 1; i < quarters.length; i++) {
-    const prev = quarters[i - 1].debt
-    const curr = quarters[i].debt
-    if (prev > 0) qoq.push((curr - prev) / prev)
-    else if (curr > 0) qoq.push(1.0)  // zero → nonzero: treat as 100% increase
-    else qoq.push(0)                   // zero → zero: stable
-  }
+  const qoq = quarters.slice(1).map((_, i) => qoqChange(quarters, i + 1))
   const avg = qoq.reduce((s, v) => s + v, 0) / qoq.length
   if (avg <= -0.15) return { qoq, avg, grade: 'A', label: 'Paying down debt', color: '#00c853' }
   if (avg < 0)      return { qoq, avg, grade: 'B', label: 'Slowly improving', color: '#64dd17' }
@@ -173,12 +181,20 @@ function calculateTrustVelocity(quarters: Quarter[]): TrustVelocity | null {
   return               { qoq, avg, grade: 'F', label: 'Debt spiral', color: '#ff1744' }
 }
 
-function velGrade(qoq: number): { grade: string; color: string } {
+function velGrade(qoq: number, currentDebt?: number): { grade: string; color: string } {
+  // Within ±10% change, grade on absolute debt rather than % movement
+  if (Math.abs(qoq) <= 0.10 && currentDebt !== undefined) {
+    if (currentDebt === 0)   return { grade: 'A', color: '#00c853' }
+    if (currentDebt < 100)   return { grade: 'B', color: '#64dd17' }
+    if (currentDebt < 500)   return { grade: 'C', color: '#ffc400' }
+    if (currentDebt < 1500)  return { grade: 'D', color: '#ff6d00' }
+    return                        { grade: 'F', color: '#ff1744' }
+  }
   if (qoq <= -0.15) return { grade: 'A', color: '#00c853' }
   if (qoq < 0)      return { grade: 'B', color: '#64dd17' }
   if (qoq < 0.10)   return { grade: 'C', color: '#ffc400' }
   if (qoq < 0.30)   return { grade: 'D', color: '#ff6d00' }
-  return               { grade: 'F', color: '#ff1744' }
+  return                   { grade: 'F', color: '#ff1744' }
 }
 
 function TrendIndicator({ delta }: { delta: number }) {
@@ -1183,21 +1199,21 @@ export default function TrustDebtApp() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {traj.quarters.slice(1).map((q, i) => {
                             const prev = traj.quarters[i]
-                            const change = prev.debt > 0 ? (q.debt - prev.debt) / prev.debt : q.debt > 0 ? 1.0 : 0
-                            const isEmpty = prev.debt === 0 && q.debt === 0
-                            const { grade, color } = velGrade(change)
+                            const change = qoqChange(traj.quarters, i + 1)
+                            const noActivity = prev.debt === 0 && q.debt === 0
+                            const { grade, color } = velGrade(change, q.debt)
                             const pct = (change * 100).toFixed(1)
                             const arrow = change < -0.02 ? '↓' : change > 0.02 ? '↑' : '→'
                             return (
-                              <div key={q.label} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px 36px', gap: 12, alignItems: 'center', padding: '10px 14px', background: isEmpty ? 'transparent' : 'rgba(148,163,184,0.03)', borderRadius: 8, opacity: isEmpty ? 0.35 : 1 }}>
+                              <div key={q.label} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px 36px', gap: 12, alignItems: 'center', padding: '10px 14px', background: 'rgba(148,163,184,0.03)', borderRadius: 8, opacity: noActivity ? 0.4 : 1 }}>
                                 <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>{prev.label} → {q.label}</span>
                                 <div style={{ height: 6, borderRadius: 3, background: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
                                   <div style={{ height: '100%', width: `${Math.min(100, Math.abs(change) * 200)}%`, background: color, borderRadius: 3 }} />
                                 </div>
-                                <span style={{ fontSize: 12, fontWeight: 700, color: isEmpty ? '#334155' : color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>
-                                  {isEmpty ? 'no data' : `${arrow} ${change >= 0 ? '+' : ''}${pct}%`}
+                                <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' }}>
+                                  {arrow} {change >= 0 ? '+' : ''}{pct}%
                                 </span>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: isEmpty ? '#334155' : color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>{isEmpty ? '—' : grade}</span>
+                                <span style={{ fontSize: 13, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>{grade}</span>
                               </div>
                             )
                           })}
