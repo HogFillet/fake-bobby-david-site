@@ -322,7 +322,7 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const reportedYear = cve.published ? new Date(cve.published).getFullYear() : null
   const cveIdYear = parseInt(cve.id.split('-')[1], 10)
-  const isLateDisclosure = reportedYear !== null && !isNaN(cveIdYear) && (reportedYear - cveIdYear) >= 2
+  const isLateDisclosure = reportedYear !== null && !isNaN(cveIdYear) && (reportedYear - cveIdYear) >= 1
   const reportedDate = cve.published ? new Date(cve.published).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : null
   return (
     <div
