@@ -320,6 +320,10 @@ function TimelineChart({ cves }: { cves: CVEWithDebt[] }) {
 
 function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
   const [expanded, setExpanded] = useState(false)
+  const reportedYear = cve.published ? new Date(cve.published).getFullYear() : null
+  const cveIdYear = parseInt(cve.id.split('-')[1], 10)
+  const isLateDisclosure = reportedYear !== null && !isNaN(cveIdYear) && (reportedYear - cveIdYear) >= 2
+  const reportedDate = cve.published ? new Date(cve.published).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : null
   return (
     <div
       style={{ borderBottom: '1px solid rgba(148,163,184,0.1)', padding: '12px 0', cursor: 'pointer', animation: `fadeSlideIn 0.3s ease ${index * 0.03}s both` }}
@@ -329,7 +333,12 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: SEVERITY_COLORS[cve.severity], flexShrink: 0, boxShadow: `0 0 6px ${SEVERITY_COLORS[cve.severity]}60` }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#e2e8f0', fontWeight: 600 }}>{cve.id}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#e2e8f0', fontWeight: 600 }}>{cve.id}</span>
+              {isLateDisclosure && (
+                <span title={`CVE assigned in ${cveIdYear}, reported to NVD in ${reportedYear}`} style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.1)', padding: '2px 5px', borderRadius: 4, border: '1px solid rgba(167,139,250,0.3)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, cursor: 'default' }}>LATE</span>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               {cve.kev && (
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#ff1744', background: 'rgba(255,23,68,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,23,68,0.35)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>KEV</span>
@@ -357,6 +366,12 @@ function CVERow({ cve, index }: { cve: CVEWithDebt; index: number }) {
       </div>
       {expanded && (
         <div style={{ marginTop: 8, marginLeft: 20, fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>
+          {reportedDate && (
+            <div style={{ marginBottom: 6, display: 'flex', gap: 16 }}>
+              <span><span style={{ color: '#475569' }}>Reported:</span> <span style={{ color: '#cbd5e1', fontFamily: "'JetBrains Mono', monospace" }}>{reportedDate}</span></span>
+              {isLateDisclosure && <span style={{ color: '#a78bfa' }}>Late disclosure — CVE assigned {cveIdYear}, published to NVD {reportedYear}</span>}
+            </div>
+          )}
           {cve.description.slice(0, 300)}{cve.description.length > 300 ? '...' : ''}
         </div>
       )}
