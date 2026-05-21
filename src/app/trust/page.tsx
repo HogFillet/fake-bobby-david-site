@@ -156,11 +156,14 @@ interface TrustVelocity {
 }
 
 function calculateTrustVelocity(quarters: Quarter[]): TrustVelocity | null {
-  const filled = quarters.filter(q => q.debt > 0)
-  if (filled.length < 2) return null
+  if (quarters.length < 2 || !quarters.some(q => q.debt > 0)) return null
   const qoq: number[] = []
-  for (let i = 1; i < filled.length; i++) {
-    qoq.push(filled[i - 1].debt > 0 ? (filled[i].debt - filled[i - 1].debt) / filled[i - 1].debt : 0)
+  for (let i = 1; i < quarters.length; i++) {
+    const prev = quarters[i - 1].debt
+    const curr = quarters[i].debt
+    if (prev > 0) qoq.push((curr - prev) / prev)
+    else if (curr > 0) qoq.push(1.0)  // zero → nonzero: treat as 100% increase
+    else qoq.push(0)                   // zero → zero: stable
   }
   const avg = qoq.reduce((s, v) => s + v, 0) / qoq.length
   if (avg <= -0.15) return { qoq, avg, grade: 'A', label: 'Paying down debt', color: '#00c853' }
@@ -915,7 +918,7 @@ export default function TrustDebtApp() {
               {/* View Mode Tabs */}
               <div className="view-tabs-bar" style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'rgba(15,23,42,0.6)', borderRadius: 10, padding: 4, border: '1px solid rgba(148,163,184,0.08)' }}>
                 {[
-                  { key: 'trajectory', label: 'Trajectory™', icon: '◆' },
+                  { key: 'trajectory', label: 'Trajectory', icon: '◆' },
                   { key: 'window', label: 'Window', icon: '↔' },
                   { key: 'recurrence', label: 'Recurrence', icon: '⟳' },
                   { key: 'velocity', label: 'Velocity', icon: '⚡' },
@@ -1145,7 +1148,7 @@ export default function TrustDebtApp() {
                 return (
                   <div style={{ animation: 'fadeSlideIn 0.3s ease' }}>
                     <div style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(148,163,184,0.08)', borderRadius: 16, padding: 28, marginBottom: 16, textAlign: 'center' }}>
-                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>Trust Velocity™</div>
+                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>Trust Velocity</div>
                       {tv ? (
                         <>
                           <div style={{ fontSize: 64, fontWeight: 800, color: tv.color, lineHeight: 1 }}>{tv.grade}</div>
@@ -1188,7 +1191,7 @@ export default function TrustDebtApp() {
                     )}
 
                     <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
-                      <div style={{ fontSize: 12, color: '#818cf8', fontWeight: 600, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>HOW TRUST VELOCITY™ WORKS</div>
+                      <div style={{ fontSize: 12, color: '#818cf8', fontWeight: 600, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>HOW TRUST VELOCITY WORKS</div>
                       <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.8 }}>Trust Velocity measures the quarter-over-quarter rate of change in Trust Debt accumulation. A company improving its security posture will have a negative velocity (debt shrinking). A debt spiral — where each quarter is worse than the last — grades as F. Each quarter is graded independently so you can see exactly when things started getting worse, or better.</div>
                     </div>
                   </div>
