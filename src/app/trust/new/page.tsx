@@ -35,6 +35,7 @@ interface TrustVelocity { qoq: number[]; avg: number; grade: string; label: stri
 interface LeaderboardEntry {
   slug: string; name: string; grade: string; trajectory: number
   cveCount: number; percentileRank?: number | null; breachCount?: number
+  kevCount?: number; epssHighCount?: number; critCount?: number; highCount?: number; delta?: number
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -383,21 +384,32 @@ function TradingCard({ company, position, onClick, sbdp }: {
         </div>
 
         {/* Stats grid */}
-        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 14px' }}>
-          {[
-            { k: 'CVEs', v: company.cveCount.toLocaleString(), vc: '#ece7d9' },
-            { k: 'Peer rank', v: company.percentileRank != null ? `p${company.percentileRank}` : '—', vc: '#ece7d9' },
-            { k: 'HIBP breaches', v: hibpCount > 0 ? String(hibpCount) : 'none', vc: hibpCount > 0 ? '#f97316' : '#7a736a' },
-            { k: 'CISA SBDP', v: sbdp ? '✓ signed' : 'unsigned', vc: sbdp ? '#06b6d4' : '#7a736a' },
-            { k: 'KEV exposure', v: 'see analysis', vc: '#7a736a' },
-            { k: 'Trajectory', v: company.trajectory > 999 ? `${(company.trajectory / 1000).toFixed(1)}k` : Math.round(company.trajectory).toString(), vc: tier.color },
-          ].map(({ k, v, vc }) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '4px 0', borderBottom: '1px dashed rgba(255,255,255,0.07)', fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, letterSpacing: '0.04em' }}>
-              <span style={{ color: '#7a736a', textTransform: 'uppercase' }}>{k}</span>
-              <span style={{ color: vc, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
+        {(() => {
+          const kev = company.kevCount ?? 0
+          const epss = company.epssHighCount ?? 0
+          const crit = company.critCount ?? 0
+          const high = company.highCount ?? 0
+          const d = company.delta ?? 1
+          const deltaLabel = d < 0.95 ? `↓ ${Math.round((1 - d) * 100)}%` : d > 1.05 ? `↑ ${Math.round((d - 1) * 100)}%` : '→ stable'
+          const deltaColor = d < 0.95 ? '#62d27a' : d > 1.05 ? '#e02020' : '#f5a524'
+          return (
+            <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 14px' }}>
+              {[
+                { k: 'ATK · Crit', v: crit.toString(), vc: crit > 0 ? '#ff1744' : '#7a736a' },
+                { k: 'HP · CVEs', v: company.cveCount.toLocaleString(), vc: '#ece7d9' },
+                { k: 'KEV hits', v: kev > 0 ? String(kev) : 'none', vc: kev > 0 ? '#ff1744' : '#7a736a' },
+                { k: 'High EPSS', v: epss > 0 ? String(epss) : 'none', vc: epss > 0 ? '#ff6d00' : '#7a736a' },
+                { k: 'Crit+High', v: `${crit + high}`, vc: (crit + high) > 10 ? '#ff6d00' : '#ece7d9' },
+                { k: 'Trend', v: deltaLabel, vc: deltaColor },
+              ].map(({ k, v, vc }) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '4px 0', borderBottom: '1px dashed rgba(255,255,255,0.07)', fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, letterSpacing: '0.04em' }}>
+                  <span style={{ color: '#7a736a', textTransform: 'uppercase' }}>{k}</span>
+                  <span style={{ color: vc, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )
+        })()}
 
         {/* Footer */}
         <div style={{
