@@ -334,7 +334,7 @@ function TradingCard({ company, position, onClick, sbdp }: {
             <div style={{ marginTop: 6, display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, color: '#7a736a' }}>{tier.label}</span>
               {sbdp && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(6,182,212,0.4)', borderRadius: 999, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', fontWeight: 700 }}>SBDP ✓</span>}
-              {hibpCount > 0 && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(249,115,22,0.4)', borderRadius: 999, color: '#f97316', background: 'rgba(249,115,22,0.1)', fontWeight: 700 }}>HIBP{hibpCount > 1 ? ` ×${hibpCount}` : ''}</span>}
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 7px', border: `1px solid ${hibpCount > 0 ? 'rgba(249,115,22,0.4)' : 'rgba(98,210,122,0.4)'}`, borderRadius: 999, color: hibpCount > 0 ? '#f97316' : '#62d27a', background: hibpCount > 0 ? 'rgba(249,115,22,0.1)' : 'rgba(98,210,122,0.1)', fontWeight: 700 }}>HIBP {hibpCount > 0 ? `×${hibpCount}` : '0'}</span>
             </div>
           </div>
           <div style={{ textAlign: 'right', lineHeight: 1, flexShrink: 0 }}>
