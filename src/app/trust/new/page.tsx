@@ -237,10 +237,11 @@ function gradeToTier(grade: string): { color: string; label: string; blurb: stri
   return { color: '#e02020', label: 'SEVERE', blurb: 'A long, costly tail of unpatched edges.' }
 }
 
-function TradingCard({ company, position, onClick }: {
+function TradingCard({ company, position, onClick, sbdp }: {
   company: LeaderboardEntry
   position: CardPosition
   onClick?: () => void
+  sbdp?: boolean
 }) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, mx: 50, my: 50 })
@@ -248,6 +249,7 @@ function TradingCard({ company, position, onClick }: {
   const tier = gradeToTier(company.grade)
   const seed = hash(company.slug)
   const serial = String((seed % 999) + 1).padStart(3, '0')
+  const hibpCount = company.breachCount ?? 0
 
   function onMove(e: React.MouseEvent) {
     if (!isCenter || !cardRef.current) return
@@ -328,8 +330,10 @@ function TradingCard({ company, position, onClick }: {
             <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: -0.5, lineHeight: 1, color: '#ece7d9' }}>
               {company.name}
             </div>
-            <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 6, display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, color: '#7a736a' }}>{tier.label}</span>
+              {sbdp && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(6,182,212,0.4)', borderRadius: 999, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', fontWeight: 700 }}>SBDP ✓</span>}
+              {hibpCount > 0 && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 7px', border: '1px solid rgba(249,115,22,0.4)', borderRadius: 999, color: '#f97316', background: 'rgba(249,115,22,0.1)', fontWeight: 700 }}>HIBP{hibpCount > 1 ? ` ×${hibpCount}` : ''}</span>}
             </div>
           </div>
           <div style={{ textAlign: 'right', lineHeight: 1, flexShrink: 0 }}>
@@ -379,16 +383,18 @@ function TradingCard({ company, position, onClick }: {
         </div>
 
         {/* Stats grid */}
-        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 14px' }}>
+        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 14px' }}>
           {[
-            { k: 'HP · CVEs', v: company.cveCount.toLocaleString() },
-            { k: 'Rank', v: company.percentileRank != null ? `p${company.percentileRank}` : '—' },
-            { k: 'Breaches', v: company.breachCount ? String(company.breachCount) : '0' },
-            { k: 'Trajectory', v: company.trajectory > 1000 ? `${(company.trajectory / 1000).toFixed(1)}k` : Math.round(company.trajectory).toString() },
-          ].map(({ k, v }) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '5px 0', borderBottom: '1px dashed rgba(255,255,255,0.07)', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: '0.06em' }}>
+            { k: 'CVEs', v: company.cveCount.toLocaleString(), vc: '#ece7d9' },
+            { k: 'Peer rank', v: company.percentileRank != null ? `p${company.percentileRank}` : '—', vc: '#ece7d9' },
+            { k: 'HIBP breaches', v: hibpCount > 0 ? String(hibpCount) : 'none', vc: hibpCount > 0 ? '#f97316' : '#7a736a' },
+            { k: 'CISA SBDP', v: sbdp ? '✓ signed' : 'unsigned', vc: sbdp ? '#06b6d4' : '#7a736a' },
+            { k: 'KEV exposure', v: 'see analysis', vc: '#7a736a' },
+            { k: 'Trajectory', v: company.trajectory > 999 ? `${(company.trajectory / 1000).toFixed(1)}k` : Math.round(company.trajectory).toString(), vc: tier.color },
+          ].map(({ k, v, vc }) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '4px 0', borderBottom: '1px dashed rgba(255,255,255,0.07)', fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, letterSpacing: '0.04em' }}>
               <span style={{ color: '#7a736a', textTransform: 'uppercase' }}>{k}</span>
-              <span style={{ color: '#ece7d9', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
+              <span style={{ color: vc, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
             </div>
           ))}
         </div>
@@ -412,7 +418,8 @@ function TradingCard({ company, position, onClick }: {
 
 // ── CompanyDeck ────────────────────────────────────────────────────────────────
 
-function CompanyDeck({ companies, onSelect }: { companies: LeaderboardEntry[]; onSelect: (name: string) => void }) {
+function CompanyDeck({ companies, onSelect, sbdpSlugs }: { companies: LeaderboardEntry[]; onSelect: (name: string) => void; sbdpSlugs: string[] }) {
+  function isSBDP(slug: string) { return sbdpSlugs.some(s => s === slug || s.startsWith(slug + '-') || slug.startsWith(s + '-')) }
   const [idx, setIdx] = useState(0)
   const [auto, setAuto] = useState(true)
   const n = companies.length
@@ -461,6 +468,7 @@ function CompanyDeck({ companies, onSelect }: { companies: LeaderboardEntry[]; o
               key={company.slug}
               company={company}
               position={pos}
+              sbdp={isSBDP(company.slug)}
               onClick={() => { setAuto(false); onSelect(company.name) }}
             />
           )
@@ -1229,7 +1237,7 @@ export default function TrustDebtNew() {
                       })}
                     </div>
                   ) : (
-                    <CompanyDeck companies={leaderboard} onSelect={(name) => { setQuery(name); fetchCVEs(name, yearsBack) }} />
+                    <CompanyDeck companies={leaderboard} sbdpSlugs={sbdpSlugs} onSelect={(name) => { setQuery(name); fetchCVEs(name, yearsBack) }} />
                   )}
                 </div>
               )}
