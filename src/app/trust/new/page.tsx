@@ -181,6 +181,24 @@ function rng(seed: number) {
   }
 }
 
+const CWE_CATALOG = [
+  { id: 'CWE-79',  name: 'Cross-Site Scripting',      desc: 'Unsanitized input reflected into page output, enabling script injection.' },
+  { id: 'CWE-89',  name: 'SQL Injection',              desc: 'User-controlled input interpolated into SQL query without parameterization.' },
+  { id: 'CWE-22',  name: 'Path Traversal',             desc: 'Filename parameter allows traversal outside the intended directory.' },
+  { id: 'CWE-78',  name: 'OS Command Injection',       desc: 'Shell command constructed from unvalidated input permits arbitrary execution.' },
+  { id: 'CWE-416', name: 'Use After Free',             desc: 'Heap memory accessed after deallocation leads to code execution primitive.' },
+  { id: 'CWE-787', name: 'Out-of-bounds Write',        desc: 'Buffer boundary not enforced; attacker-controlled write corrupts adjacent memory.' },
+  { id: 'CWE-502', name: 'Unsafe Deserialization',     desc: 'Attacker-supplied serialized object instantiates arbitrary classes on restore.' },
+  { id: 'CWE-306', name: 'Missing Authentication',     desc: 'Critical function reachable without verifying caller identity.' },
+  { id: 'CWE-918', name: 'Server-Side Request Forgery','desc': 'URL parameter causes server to issue requests to internal infrastructure.' },
+  { id: 'CWE-611', name: 'XML External Entity',        desc: 'XML parser resolves external entity references, exposing local files.' },
+  { id: 'CWE-287', name: 'Improper Authentication',    desc: 'Authentication mechanism bypassable via crafted credential sequence.' },
+  { id: 'CWE-434', name: 'Unrestricted File Upload',   desc: 'File type not validated server-side; executable content accepted and stored.' },
+  { id: 'CWE-20',  name: 'Improper Input Validation',  desc: 'Input accepted without structural checks, enabling downstream misinterpretation.' },
+  { id: 'CWE-119', name: 'Buffer Overflow',            desc: 'Fixed-size buffer written past end; return address or vtable pointer overwritten.' },
+  { id: 'CWE-732', name: 'Insecure Permissions',       desc: 'Resource permissions grant write access to unintended principals.' },
+]
+
 function CardArt({ seed, color }: { seed: number; color: string }) {
   const els = useMemo(() => {
     const r = rng(seed)
@@ -190,6 +208,21 @@ function CardArt({ seed, color }: { seed: number; color: string }) {
   }, [seed])
   const angle = seed % 360
   const gradId = `g${seed}`, patId = `p${seed}`
+  const cveYear = 2021 + (seed % 5)
+  const cveNum = String((seed % 9000) + 1000)
+  const cveId = `CVE-${cveYear}-${cveNum}`
+  const cwe = CWE_CATALOG[seed % CWE_CATALOG.length]
+  const score = (7.0 + (seed % 31) / 10).toFixed(1)
+  // Split description into two lines of ~42 chars each
+  const words = cwe.desc.split(' ')
+  const lines: string[] = []
+  let line = ''
+  for (const w of words) {
+    if ((line + ' ' + w).trim().length > 42 && line) { lines.push(line); line = w } else { line = (line + ' ' + w).trim() }
+  }
+  if (line) lines.push(line)
+  const [l1, l2] = [lines[0] ?? '', lines[1] ?? '']
+
   return (
     <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" style={{ display: 'block', width: '100%', height: '100%' }}>
       <defs>
@@ -208,11 +241,24 @@ function CardArt({ seed, color }: { seed: number; color: string }) {
       {els.map((e, i) => (
         <circle key={i} cx={e.cx} cy={e.cy} r={e.rad} fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={e.op} />
       ))}
-      <text x="12" y="22" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="rgba(255,255,255,0.55)" letterSpacing="1">
-        CVE-{2020 + (seed % 6)}-{(seed % 9000 + 1000)}
+      {/* Upper left — CVE ID */}
+      <text x="12" y="20" fontFamily="JetBrains Mono, monospace" fontSize="9" fontWeight="600" fill="rgba(255,255,255,0.9)" letterSpacing="0.5">
+        {cveId}
       </text>
-      <text x="288" y="190" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="9" fill={color} fillOpacity="0.8" letterSpacing="1.5">
-        ⊙ {((seed % 1000) / 10).toFixed(1)} CVSS
+      {/* Upper right — CWE */}
+      <text x="288" y="14" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={color} fillOpacity="0.9" letterSpacing="0.3">
+        {cwe.id}
+      </text>
+      <text x="288" y="25" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={color} fillOpacity="0.65" letterSpacing="0.2">
+        {cwe.name}
+      </text>
+      {/* Lower left — description */}
+      <text x="12" y="174" fontFamily="JetBrains Mono, monospace" fontSize="7.5" fill="rgba(255,255,255,0.45)" letterSpacing="0.1">{l1}</text>
+      <text x="12" y="185" fontFamily="JetBrains Mono, monospace" fontSize="7.5" fill="rgba(255,255,255,0.45)" letterSpacing="0.1">{l2}</text>
+      {/* Lower right — base score */}
+      <text x="288" y="185" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="8" fill="rgba(255,255,255,0.35)" letterSpacing="0.5">BASE SCORE</text>
+      <text x="288" y="197" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="13" fontWeight="700" fill={color} fillOpacity="0.9" letterSpacing="0.5">
+        {score}
       </text>
     </svg>
   )
