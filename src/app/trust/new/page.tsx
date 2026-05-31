@@ -796,6 +796,8 @@ export default function TrustDebtNew() {
   const [sortBy, setSortBy] = useState('trustDebt')
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [dataSource, setDataSource] = useState<'cached' | 'live' | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [fakeCharacter, setFakeCharacter] = useState<{ img: string; name: string; caption: string } | null>(null)
   const [searchHistory, setSearchHistory] = useState<HistoryEntry[]>([])
   const [viewMode, setViewMode] = useState('trajectory')
@@ -809,6 +811,9 @@ export default function TrustDebtNew() {
 
   useEffect(() => {
     try { const s = localStorage.getItem('trust-debt-history'); if (s) setSearchHistory(JSON.parse(s)) } catch { /* ok */ }
+  }, [])
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [])
   useEffect(() => {
     fetch(`${TRUST_DEBT_API}/api/nvd/count`).then(r => r.json()).then(d => { if (d.cveCount != null) setDbCounts(d) }).catch(() => {})
@@ -827,6 +832,7 @@ export default function TrustDebtNew() {
 
   const fetchCVEs = useCallback(async (searchQuery: string, years: number) => {
     if (!searchQuery.trim()) return
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; setSyncing(false) }
     setLoading(true); setError(''); setCves([]); setFakeCharacter(null)
     setSearched(true); setCompanyName(searchQuery.trim())
     const now = new Date(); const startYear = now.getFullYear() - years
@@ -870,8 +876,41 @@ export default function TrustDebtNew() {
       )
       const withDebt = calculateTrustDebt(parsed); setCves(withDebt)
       if (parsed.length >= 10 && !cachedRes.ok) {
-        fetch(`${TRUST_DEBT_API}/api/companies`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: searchQuery.trim(), keywords: [searchQuery.trim()], yearsBack: 3 }) })
+        setSyncing(true)
+        fetch(`${TRUST_DEBT_API}/api/companies`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: searchQuery.trim(), keywords: [searchQuery.trim()], yearsBack: years }) })
           .then(() => fetch(`${TRUST_DEBT_API}/api/sync/${slug}`, { method: 'POST' })).catch(() => {})
+        const slugCapture = slug; const queryCapture = searchQuery.trim()
+        let attempts = 0
+        pollRef.current = setInterval(async () => {
+          attempts++
+          if (attempts > 36) { clearInterval(pollRef.current!); pollRef.current = null; setSyncing(false); return }
+          try {
+            const res = await fetch(`${TRUST_DEBT_API}/api/company/${slugCapture}`)
+            if (!res.ok) return
+            const data = await res.json()
+            const cveList = (data.cves || []) as CVE[]
+            if (cveList.length === 0) return
+            clearInterval(pollRef.current!); pollRef.current = null; setSyncing(false)
+            const freshParsed = filterByVendorMatch(
+              cveList.filter(c => c.id && c.severity).map(c => ({
+                id: c.id, published: c.published || `${startYear}-06-01`,
+                severity: (c.severity || 'NONE').toUpperCase(),
+                score: typeof c.score === 'number' ? c.score : 0,
+                description: c.description || 'No description available',
+                kev: c.kev === true,
+                epss: typeof c.epss === 'number' ? c.epss : undefined,
+                epssPercentile: typeof c.epssPercentile === 'number' ? c.epssPercentile : undefined,
+              })), queryCapture
+            )
+            const freshWithDebt = calculateTrustDebt(freshParsed)
+            setCves(freshWithDebt); setDataSource('cached')
+            setCurrentBreachCount(data.company?.breachCount ?? 0)
+            setCurrentBFactor(data.company?.bFactor ?? 1.0)
+            const ft = freshWithDebt.length > 0 ? calculateTrajectory(freshWithDebt) : null
+            const fTraj = ft ? ft.trajectory : 0
+            saveToHistory(queryCapture, years, freshWithDebt, fTraj, getGrade(fTraj, freshWithDebt.length))
+          } catch { /* keep polling */ }
+        }, 5000)
       }
       const t = withDebt.length > 0 ? calculateTrajectory(withDebt) : null
       const trajScore = t ? t.trajectory : 0
@@ -1031,7 +1070,13 @@ export default function TrustDebtNew() {
                   </button>
                 )}
                 <a href={`/trust/vs/${currentSlug ? `?a=${currentSlug}` : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#818cf8', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', padding: '3px 10px', borderRadius: 6 }}>⚔ Compare</a>
-                {dataSource && (
+                {syncing && (
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: "'JetBrains Mono', monospace", padding: '2px 8px', borderRadius: 4, background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#fbbf24', animation: 'pulse 1.2s ease-in-out infinite' }} />
+                    syncing full history…
+                  </span>
+                )}
+                {!syncing && dataSource && (
                   <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: "'JetBrains Mono', monospace", padding: '2px 8px', borderRadius: 4, background: dataSource === 'cached' ? 'rgba(0,200,83,0.1)' : 'rgba(99,102,241,0.1)', color: dataSource === 'cached' ? '#00c853' : '#818cf8', border: `1px solid ${dataSource === 'cached' ? '#00c85330' : '#6366f130'}` }}>
                     {dataSource === 'cached' ? '⚡ cached' : '🔍 live query'}
                   </span>
