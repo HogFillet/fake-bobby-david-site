@@ -36,6 +36,7 @@ interface LeaderboardEntry {
   slug: string; name: string; grade: string; trajectory: number
   cveCount: number; percentileRank?: number | null; breachCount?: number
   kevCount?: number; epssHighCount?: number; critCount?: number; highCount?: number; delta?: number
+  featuredCve?: { id: string; published: string; severity: string; score: number; description: string; cwe?: string | null } | null
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -199,7 +200,7 @@ const CWE_CATALOG = [
   { id: 'CWE-732', name: 'Insecure Permissions',       desc: 'Resource permissions grant write access to unintended principals.' },
 ]
 
-function CardArt({ seed, color }: { seed: number; color: string }) {
+function CardArt({ seed, color, featuredCve }: { seed: number; color: string; featuredCve?: { id: string; published: string; score: number; description: string; cwe?: string | null } | null }) {
   const els = useMemo(() => {
     const r = rng(seed)
     return Array.from({ length: 8 }, () => ({
@@ -208,13 +209,14 @@ function CardArt({ seed, color }: { seed: number; color: string }) {
   }, [seed])
   const angle = seed % 360
   const gradId = `g${seed}`, patId = `p${seed}`
-  const cveYear = 2021 + (seed % 5)
-  const cveNum = String((seed % 9000) + 1000)
-  const cveId = `CVE-${cveYear}-${cveNum}`
-  const cwe = CWE_CATALOG[seed % CWE_CATALOG.length]
-  const score = (7.0 + (seed % 31) / 10).toFixed(1)
+  const fallbackCwe = CWE_CATALOG[seed % CWE_CATALOG.length]
+  const cveId = featuredCve?.id ?? `CVE-${2021 + (seed % 5)}-${(seed % 9000) + 1000}`
+  const score = featuredCve != null ? featuredCve.score.toFixed(1) : (7.0 + (seed % 31) / 10).toFixed(1)
+  const rawDesc = featuredCve?.description ?? fallbackCwe.desc
+  const cweId = featuredCve?.cwe ?? fallbackCwe.id
+  const cweName = CWE_CATALOG.find(c => c.id === cweId)?.name ?? cweId ?? fallbackCwe.name
   // Split description into two lines of ~42 chars each
-  const words = cwe.desc.split(' ')
+  const words = rawDesc.split(' ')
   const lines: string[] = []
   let line = ''
   for (const w of words) {
@@ -247,10 +249,10 @@ function CardArt({ seed, color }: { seed: number; color: string }) {
       </text>
       {/* Upper right — CWE */}
       <text x="288" y="14" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={color} fillOpacity="0.9" letterSpacing="0.3">
-        {cwe.id}
+        {cweId}
       </text>
       <text x="288" y="25" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="8" fill={color} fillOpacity="0.65" letterSpacing="0.2">
-        {cwe.name}
+        {cweName}
       </text>
       {/* Lower left — description */}
       <text x="12" y="174" fontFamily="JetBrains Mono, monospace" fontSize="7.5" fill="rgba(255,255,255,0.45)" letterSpacing="0.1">{l1}</text>
@@ -396,7 +398,7 @@ function TradingCard({ company, position, onClick, sbdp }: {
           marginTop: 12, height: 170, borderRadius: 8, overflow: 'hidden',
           position: 'relative', border: '1px solid rgba(255,255,255,0.06)', background: '#050505',
         }}>
-          <CardArt seed={seed} color={tier.color} />
+          <CardArt seed={seed} color={tier.color} featuredCve={company.featuredCve} />
           <div style={{
             position: 'absolute', bottom: 6, left: 8, right: 8,
             display: 'flex', justifyContent: 'space-between',
